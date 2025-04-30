@@ -3,68 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini-OASIS</title>
+    <title>OASIS - Ready Player One Experience</title>
+    <link rel="stylesheet" href="css/loading.css">
     <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="loading-screen">
-        <div class="loader"></div>
-        <div id="loading-text">LOADING OASIS...</div>
-    </div>
-
-    <div id="ui-container">
-        <div id="player-info">
-            <div id="credits">CREDITS: <span>1,000</span></div>
-            <div id="level">LEVEL: <span>1</span></div>
+        <div class="loader-container">
+            <div class="retro-loader"></div>
+            <div id="loading-text">INITIALIZING OASIS</div>
+            <div class="progress-bar">
+                <div class="progress"></div>
+            </div>
         </div>
-        
-        <div id="notification-center"></div>
-        
-        <div id="menu-toggle">≡</div>
-    </div>
-
-    <div id="main-menu" class="hidden">
-        <div class="menu-header">
-            <h1>OASIS MAIN MENU</h1>
-            <div class="close-btn">✕</div>
-        </div>
-        
-        <div class="menu-section">
-            <h2>WORLDS</h2>
-            <button class="world-btn" data-world="arcade">ARCADE</button>
-            <button class="world-btn" data-world="social">SOCIAL HUB</button>
-            <button class="world-btn" data-world="race">RACE TRACK</button>
-        </div>
-        
-        <div class="menu-section">
-            <h2>AVATAR</h2>
-            <button id="avatar-customize">CUSTOMIZE</button>
-            <button id="inventory-btn">INVENTORY</button>
-        </div>
-        
-        <div class="menu-section">
-            <h2>SETTINGS</h2>
-            <button id="settings-btn">OPTIONS</button>
-            <button id="logout-btn">LOGOUT</button>
-        </div>
-    </div>
-
-    <div id="avatar-customizer" class="hidden">
-        <div class="customizer-header">
-            <h1>AVATAR CUSTOMIZATION</h1>
-            <div class="close-btn">✕</div>
-        </div>
-        <div class="customization-options">
-            <!-- Options will be populated by JavaScript -->
-        </div>
-        <button id="save-avatar">SAVE AVATAR</button>
     </div>
 
     <div id="game-container"></div>
+    <div class="scanlines"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="js/worlds.js"></script>
-    <script src="js/avatar.js"></script>
+    <!-- Three.js and other libraries -->
+    <script src="js/lib/three.min.js"></script>
+    <script src="js/lib/Tween.js"></script>
+    <script src="js/lib/FontLoader.js"></script>
+    
+    <!-- Core Systems -->
+    <script src="js/audioManager.js"></script>
+    <script src="js/uiManager.js"></script>
+    <script src="js/avatarSystem.js"></script>
+    <script src="js/worldManager.js"></script>
+    
+    <!-- Mini Games -->
+    <script src="js/miniGames/pacman.js"></script>
+    <script src="js/miniGames/spaceInvaders.js"></script>
+    <script src="js/miniGames/racing.js"></script>
+    
+    <!-- Main Game -->
     <script src="js/main.js"></script>
 </body>
 </html>
