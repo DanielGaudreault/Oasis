@@ -429,4 +429,24 @@ function createPortal(scene, x, y, z, destination) {
             const i3 = i * 3;
             positions[i3 + 1] += 0.02;
             
-            if (positions[i3 + 1
+            if (positions[i3 + 1] > 0.5) {
+                positions[i3 + 1] = -0.5;
+            }
+        }
+        
+        particles.attributes.position.needsUpdate = true;
+    }
+    
+    group.userData = {
+        type: 'portal',
+        destination: destination.toLowerCase().replace(' ', '-'),
+        update: animatePortal,
+        interact: () => {
+            showNotification(`Entering ${destination}...`);
+            loadWorld(destination.toLowerCase().replace(' ', '-'));
+        }
+    };
+    
+    scene.add(group);
+    return group;
+}
