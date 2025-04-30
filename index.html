@@ -3,42 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OASIS - Ready Player One Experience</title>
+    <title>OASIS - Open World</title>
     <link rel="stylesheet" href="css/loading.css">
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="loading-screen">
-        <div class="loader-container">
-            <div class="retro-loader"></div>
-            <div id="loading-text">INITIALIZING OASIS</div>
-            <div class="progress-bar">
-                <div class="progress"></div>
-            </div>
-        </div>
+        <div class="loader"></div>
+        <p>Loading OASIS...</p>
     </div>
+    <div id="ui">
+        <div id="location">Location: Spawn</div>
+        <button id="social-btn">Social Hub</button>
+        <button id="race-btn">Race Track</button>
+        <button id="arcade-btn">Arcade</button>
+    </div>
+    <canvas id="world"></canvas>
 
-    <div id="game-container"></div>
-    <div class="scanlines"></div>
-
-    <!-- Three.js and other libraries -->
-    <script src="js/lib/three.min.js"></script>
-    <script src="js/lib/Tween.js"></script>
-    <script src="js/lib/FontLoader.js"></script>
-    
-    <!-- Core Systems -->
-    <script src="js/audioManager.js"></script>
-    <script src="js/uiManager.js"></script>
-    <script src="js/avatarSystem.js"></script>
-    <script src="js/worldManager.js"></script>
-    
-    <!-- Mini Games -->
-    <script src="js/miniGames/pacman.js"></script>
-    <script src="js/miniGames/spaceInvaders.js"></script>
-    <script src="js/miniGames/racing.js"></script>
-    
-    <!-- Main Game -->
-    <script src="js/main.js"></script>
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- JavaScript Modules -->
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
