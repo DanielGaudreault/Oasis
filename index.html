@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini-OASIS</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="loader"></div>
+        <div id="loading-text">LOADING OASIS...</div>
+    </div>
+
+    <div id="ui-container">
+        <div id="player-info">
+            <div id="credits">CREDITS: <span>1,000</span></div>
+            <div id="level">LEVEL: <span>1</span></div>
+        </div>
+        
+        <div id="notification-center"></div>
+        
+        <div id="menu-toggle">≡</div>
+    </div>
+
+    <div id="main-menu" class="hidden">
+        <div class="menu-header">
+            <h1>OASIS MAIN MENU</h1>
+            <div class="close-btn">✕</div>
+        </div>
+        
+        <div class="menu-section">
+            <h2>WORLDS</h2>
+            <button class="world-btn" data-world="arcade">ARCADE</button>
+            <button class="world-btn" data-world="social">SOCIAL HUB</button>
+            <button class="world-btn" data-world="race">RACE TRACK</button>
+        </div>
+        
+        <div class="menu-section">
+            <h2>AVATAR</h2>
+            <button id="avatar-customize">CUSTOMIZE</button>
+            <button id="inventory-btn">INVENTORY</button>
+        </div>
+        
+        <div class="menu-section">
+            <h2>SETTINGS</h2>
+            <button id="settings-btn">OPTIONS</button>
+            <button id="logout-btn">LOGOUT</button>
+        </div>
+    </div>
+
+    <div id="avatar-customizer" class="hidden">
+        <div class="customizer-header">
+            <h1>AVATAR CUSTOMIZATION</h1>
+            <div class="close-btn">✕</div>
+        </div>
+        <div class="customization-options">
+            <!-- Options will be populated by JavaScript -->
+        </div>
+        <button id="save-avatar">SAVE AVATAR</button>
+    </div>
+
+    <div id="game-container"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="js/worlds.js"></script>
+    <script src="js/avatar.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
