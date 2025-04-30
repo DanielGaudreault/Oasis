@@ -7,12 +7,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 2000);
 });
 
+let playerAvatar = null;
+let currentWorld = null;
+let worldInteractables = [];
+let lastTime = 0;
+
 function initGame() {
     // Initialize Three.js renderer
     const gameContainer = document.getElementById('game-container');
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000);
+    renderer.shadowMap.enabled = true;
     gameContainer.appendChild(renderer.domElement);
     
     // Setup camera
@@ -22,21 +28,15 @@ function initGame() {
     // Setup scene
     const scene = new THREE.Scene();
     
-    // Add basic lighting
-    const ambientLight = new THREE.AmbientLight(0x404040);
-    scene.add(ambientLight);
-    
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-    directionalLight.position.set(1, 1, 1);
-    scene.add(directionalLight);
+    // Initialize avatar
+    playerAvatar = initAvatar(scene, 0, 0, 10);
     
     // Game state
     const gameState = {
-        currentWorld: null,
         credits: 1000,
         level: 1,
         playerName: "Guest",
-        avatar: null
+        inventory: []
     };
     
     // UI Event Listeners
@@ -49,17 +49,57 @@ function initGame() {
     document.querySelectorAll('.world-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const world = btn.dataset.world;
-            loadWorld(world);
+            loadWorld(world, scene, camera);
             toggleMainMenu();
         });
     });
     
+    // Handle clicks on 3D objects
+    renderer.domElement.addEventListener('click', (event) => {
+        handleObjectClick(event, scene, camera);
+    }, false);
+    
+    // Handle keyboard input
+    const keys = {};
+    document.addEventListener('keydown', (event) => {
+        keys[event.key] = true;
+        
+        // Toggle menu with ESC
+        if (event.key === 'Escape') {
+            toggleMainMenu();
+        }
+    });
+    
+    document.addEventListener('keyup', (event) => {
+        keys[event.key] = false;
+    });
+    
     // Animation loop
-    function animate() {
+    function animate(time) {
+        time *= 0.001; // Convert to seconds
+        const deltaTime = time - lastTime;
+        lastTime = time;
+        
         requestAnimationFrame(animate);
+        
+        // Update animations
+        if (playerAvatar) {
+            playerAvatar.update(time);
+        }
+        
+        // Update world objects
+        scene.children.forEach(child => {
+            if (child.userData && child.userData.update) {
+                child.userData.update();
+            }
+        });
+        
+        // Handle continuous keyboard input
+        handlePlayerMovement(keys, deltaTime);
+        
         renderer.render(scene, camera);
     }
-    animate();
+    animate(0);
     
     // Window resize handler
     window.addEventListener('resize', () => {
@@ -75,46 +115,112 @@ function initGame() {
     
     function openAvatarCustomizer() {
         document.getElementById('avatar-customizer').classList.remove('hidden');
-        // Initialize avatar customizer UI
+        playerAvatar.initCustomizerUI();
     }
     
     function closeAvatarCustomizer() {
         document.getElementById('avatar-customizer').classList.add('hidden');
     }
     
-    function loadWorld(worldName) {
-        // Clear current world
-        if (gameState.currentWorld) {
-            // Cleanup existing world
-        }
+    function loadWorld(worldName, scene, camera) {
+        // Clear current world interactables
+        worldInteractables = [];
         
         // Load new world
         switch(worldName) {
             case 'arcade':
-                loadArcadeWorld(scene, camera);
+                worldInteractables = loadArcadeWorld(scene, camera);
                 break;
             case 'social':
-                loadSocialHub(scene, camera);
+                worldInteractables = loadSocialHub(scene, camera);
                 break;
             case 'race':
-                loadRaceTrack(scene, camera);
+                worldInteractables = loadRaceTrack(scene, camera);
                 break;
         }
         
-        gameState.currentWorld = worldName;
+        currentWorld = worldName;
         showNotification(`Entering ${worldName.toUpperCase()}...`);
     }
     
-    function showNotification(message) {
-        const notification = document.getElementById('notification-center');
-        notification.textContent = message;
-        notification.style.opacity = 1;
+    function handleObjectClick(event, scene, camera) {
+        // Don't interact if menu is open
+        if (!document.getElementById('main-menu').classList.contains('hidden')) return;
         
-        setTimeout(() => {
-            notification.style.opacity = 0;
-        }, 3000);
+        // Calculate mouse position in normalized device coordinates
+        const mouse = new THREE.Vector2();
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        
+        // Set up raycaster
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, camera);
+        
+        // Calculate objects intersecting the ray
+        const intersects = raycaster.intersectObjects(scene.children, true);
+        
+        if (intersects.length > 0) {
+            // Find the first interactive object
+            let interactiveObj = null;
+            for (let i = 0; i < intersects.length; i++) {
+                let obj = intersects[i].object;
+                
+                // Traverse up the parent chain to find an object with userData
+                while (obj && !obj.userData.interact) {
+                    obj = obj.parent;
+                }
+                
+                if (obj && obj.userData.interact) {
+                    interactiveObj = obj;
+                    break;
+                }
+            }
+            
+            if (interactiveObj) {
+                interactiveObj.userData.interact();
+            }
+        }
+    }
+    
+    function handlePlayerMovement(keys, deltaTime) {
+        if (!playerAvatar || !playerAvatar.group) return;
+        
+        const moveSpeed = 5 * deltaTime;
+        const rotateSpeed = 2 * deltaTime;
+        
+        if (keys['w'] || keys['ArrowUp']) {
+            playerAvatar.group.translateZ(-moveSpeed);
+            playerAvatar.playAnimation('walk');
+        } else if (keys['s'] || keys['ArrowDown']) {
+            playerAvatar.group.translateZ(moveSpeed);
+            playerAvatar.playAnimation('walk');
+        } else {
+            playerAvatar.playAnimation('idle');
+        }
+        
+        if (keys['a'] || keys['ArrowLeft']) {
+            playerAvatar.group.rotation.y += rotateSpeed;
+        }
+        
+        if (keys['d'] || keys['ArrowRight']) {
+            playerAvatar.group.rotation.y -= rotateSpeed;
+        }
+        
+        if (keys[' '] && !playerAvatar.jumping) {
+            playerAvatar.playAnimation('jump');
+        }
     }
     
     // Initial load
-    loadWorld('social');
+    loadWorld('social', scene, camera);
+}
+
+function showNotification(message) {
+    const notification = document.getElementById('notification-center');
+    notification.textContent = message;
+    notification.style.opacity = 1;
+    
+    setTimeout(() => {
+        notification.style.opacity = 0;
+    }, 3000);
 }
