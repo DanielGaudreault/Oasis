@@ -1,54 +1,33 @@
-import { SocialHub } from './worlds/socialHub.js';
-import { ArcadeWorld } from './worlds/arcadeWorld.js';
-import { RaceTrack } from './worlds/raceTrack.js';
+import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+import { RaceTrack } from './RaceTrack.js';
+import { SocialHub } from './SocialHub.js';
+import { Arcade } from './arcade.js';
 
-class WorldManager {
-    constructor(scene, camera, avatarSystem) {
+export class WorldManager {
+    constructor(scene) {
         this.scene = scene;
-        this.camera = camera;
-        this.avatarSystem = avatarSystem;
-        this.currentWorld = null;
-        this.worlds = {
-            social: new SocialHub(scene, camera, avatarSystem),
-            arcade: new ArcadeWorld(scene, camera, avatarSystem),
-            race: new RaceTrack(scene, camera, avatarSystem)
-        };
-        this.clock = new THREE.Clock();
+        this.raceTrack = new RaceTrack(scene);
+        this.socialHub = new SocialHub(scene);
+        this.arcade = new Arcade(scene);
     }
 
-    loadWorld(worldName) {
-        if (this.currentWorld === worldName) return;
-        
-        // Transition effects
-        this.startTransition(() => {
-            if (this.currentWorld) {
-                this.worlds[this.currentWorld].cleanup();
-            }
-            
-            this.currentWorld = worldName;
-            this.worlds[worldName].init();
-            
-            // Position player avatar
-            this.avatarSystem.positionAvatarInWorld(worldName);
-            
-            this.endTransition();
-        });
+    init() {
+        // Ground
+        const groundGeometry = new THREE.PlaneGeometry(1000, 1000);
+        const groundMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        this.scene.add(ground);
+
+        // Initialize areas
+        this.raceTrack.init();
+        this.socialHub.init();
+        this.arcade.init();
     }
 
-    startTransition(callback) {
-        // Implement transition animation (fade out, etc.)
-        callback();
-    }
-
-    endTransition() {
-        // Implement transition completion
-    }
-
-    update(delta) {
-        if (this.currentWorld) {
-            this.worlds[this.currentWorld].update(delta);
-        }
+    update() {
+        this.raceTrack.update();
+        this.socialHub.update();
+        this.arcade.update();
     }
 }
-
-export { WorldManager };
