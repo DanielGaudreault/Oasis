@@ -362,4 +362,83 @@ function createRaceCar(scene, x, y, z, color) {
     return group;
 }
 
-function
+function createFinishLine(scene, x, y, z) {
+    const group = new THREE.Group();
+    group.position.set(x, y, z);
+    
+    // Finish line structure
+    const poleGeometry = new THREE.CylinderGeometry(0.2, 0.2, 5, 8);
+    const poleMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    
+    const leftPole = new THREE.Mesh(poleGeometry, poleMaterial);
+    leftPole.position.set(-10, 2.5, 0);
+    group.add(leftPole);
+    
+    const rightPole = new THREE.Mesh(poleGeometry, poleMaterial);
+    rightPole.position.set(10, 2.5, 0);
+    group.add(rightPole);
+    
+    // Finish line banner
+    const bannerGeometry = new THREE.PlaneGeometry(20, 2);
+    const bannerMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0xff0000,
+        side: THREE.DoubleSide,
+        emissive: 0xff0000,
+        emissiveIntensity: 0.3
+    });
+    
+    const banner = new THREE.Mesh(bannerGeometry, bannerMaterial);
+    banner.position.set(0, 4, 0);
+    group.add(banner);
+    
+    // Add "FINISH" text
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 256;
+    const context = canvas.getContext('2d');
+    context.fillStyle = '#ffffff';
+    context.font = 'Bold 120px Arial';
+    context.textAlign = 'center';
+    context.fillText('FINISH', canvas.width/2, canvas.height/2 + 40);
+    
+    const texture = new THREE.CanvasTexture(canvas);
+    bannerMaterial.map = texture;
+    
+    // Checkered flag pattern on the sides
+    const flagGeometry = new THREE.PlaneGeometry(1, 2);
+    const flagMaterial = new THREE.MeshStandardMaterial({ 
+        side: THREE.DoubleSide,
+        emissive: 0xffffff,
+        emissiveIntensity: 0.3
+    });
+    
+    const leftFlag = new THREE.Mesh(flagGeometry, flagMaterial);
+    leftFlag.position.set(-10.5, 4, 0);
+    leftFlag.rotation.y = Math.PI / 2;
+    group.add(leftFlag);
+    
+    const rightFlag = new THREE.Mesh(flagGeometry, flagMaterial);
+    rightFlag.position.set(10.5, 4, 0);
+    rightFlag.rotation.y = Math.PI / 2;
+    group.add(rightFlag);
+    
+    // Create checkered pattern for flags
+    const flagCanvas = document.createElement('canvas');
+    flagCanvas.width = 128;
+    flagCanvas.height = 256;
+    const flagContext = flagCanvas.getContext('2d');
+    
+    const size = 16;
+    for (let y = 0; y < 16; y++) {
+        for (let x = 0; x < 8; x++) {
+            flagContext.fillStyle = (x + y) % 2 === 0 ? '#ffffff' : '#000000';
+            flagContext.fillRect(x * size, y * size, size, size);
+        }
+    }
+    
+    const flagTexture = new THREE.CanvasTexture(flagCanvas);
+    flagMaterial.map = flagTexture;
+    
+    scene.add(group);
+    return group;
+}
