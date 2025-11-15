@@ -1,274 +1,459 @@
-import React, { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
-
-// Single-file React component that implements a client-side "Oasis"-like demo.
-// Notes:
-// - No server required. Everything runs in the browser and uses localStorage for persistence.
-// - Uses Tailwind utility classes (UI will render in the preview environment that supports Tailwind).
-// - All images are procedural (canvas / SVG / CSS) so there are no copyrighted assets.
-// - This is a playful, original homage — not a movie asset copy. Customize freely.
-
-export default function OasisDemo() {
-  const [username, setUsername] = useState(
-    () => localStorage.getItem("oasis.username") || "GUEST"
-  );
-  const [avatar, setAvatar] = useState(() => localStorage.getItem("oasis.avatar") || "neon");
-  const [room, setRoom] = useState(() => localStorage.getItem("oasis.room") || "lobby");
-  const [chatMessages, setChatMessages] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("oasis.chat")) || [];
-    } catch (e) {
-      return [];
-    }
-  });
-  const [input, setInput] = useState("");
-  const canvasRef = useRef(null);
-
-  useEffect(() => {
-    localStorage.setItem("oasis.username", username);
-  }, [username]);
-  useEffect(() => {
-    localStorage.setItem("oasis.avatar", avatar);
-  }, [avatar]);
-  useEffect(() => {
-    localStorage.setItem("oasis.room", room);
-  }, [room]);
-  useEffect(() => {
-    localStorage.setItem("oasis.chat", JSON.stringify(chatMessages));
-  }, [chatMessages]);
-
-  // Starfield canvas
-  useEffect(() => {
-    const c = canvasRef.current;
-    if (!c) return;
-    const ctx = c.getContext("2d");
-    let w = (c.width = c.clientWidth);
-    let h = (c.height = c.clientHeight);
-    const stars = Array.from({ length: 120 }, () => ({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      z: Math.random() * 1,
-    }));
-    let raf;
-    function resize() {
-      w = c.width = c.clientWidth;
-      h = c.height = c.clientHeight;
-    }
-    function draw() {
-      ctx.fillStyle = "rgba(5,8,20,0.35)";
-      ctx.fillRect(0, 0, w, h);
-      for (const s of stars) {
-        s.x += (s.z + 0.2);
-        s.y += Math.sin(s.x * 0.001 + s.z * 10) * 0.3;
-        s.z += 0.0005;
-        if (s.x > w + 10 || s.y > h + 10) {
-          s.x = -10; s.y = Math.random() * h; s.z = Math.random() * 1;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The OASIS - Ready Player One</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        const r = (s.z + 0.1) * 1.8;
-        ctx.beginPath();
-        ctx.fillStyle = `rgba(200,220,255,${0.2 + s.z})`;
-        ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      raf = requestAnimationFrame(draw);
-    }
-    window.addEventListener("resize", resize);
-    draw();
-    return () => { window.removeEventListener("resize", resize); cancelAnimationFrame(raf); };
-  }, []);
 
-  function postMessage() {
-    if (!input.trim()) return;
-    const msg = { id: Date.now(), user: username, avatar, text: input.trim(), time: new Date().toISOString() };
-    setChatMessages(prev => [...prev, msg].slice(-200));
-    setInput("");
-  }
+        body {
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
 
-  const avatars = [
-    { id: "neon", label: "Neon Runner" },
-    { id: "mech", label: "Mech" },
-    { id: "pix", label: "Pixel" },
-    { id: "ghost", label: "Ghost" },
-  ];
-  const rooms = [
-    { id: "lobby", name: "Lobby" },
-    { id: "arcade", name: "Arcade" },
-    { id: "sky", name: "Sky City" },
-    { id: "forest", name: "Dream Forest" },
-  ];
+        #oasis-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #1a237e 0%, #000 70%);
+            overflow: hidden;
+        }
 
-  return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#020617] to-[#071033] text-white">
-      <canvas ref={canvasRef} className="fixed inset-0 -z-10" />
+        #stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
 
-      <header className="flex items-center justify-between p-4 border-b border-white/5">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-black font-bold">O</div>
-          <div>
-            <div className="text-sm opacity-80">The Oasis — browser demo</div>
-            <div className="text-xs opacity-60">pure client-side • no server • localStorage</div>
-          </div>
+        .star {
+            position: absolute;
+            background-color: #fff;
+            border-radius: 50%;
+        }
+
+        #login-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        #login-form {
+            background: rgba(25, 25, 112, 0.7);
+            padding: 2rem;
+            border-radius: 10px;
+            border: 2px solid #4fc3f7;
+            box-shadow: 0 0 20px #4fc3f7;
+            width: 300px;
+            text-align: center;
+        }
+
+        #login-form h1 {
+            margin-bottom: 1.5rem;
+            color: #4fc3f7;
+            text-shadow: 0 0 10px #4fc3f7;
+        }
+
+        #login-form input {
+            width: 100%;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #4fc3f7;
+            border-radius: 5px;
+            color: white;
+            font-size: 1rem;
+        }
+
+        #login-form button {
+            width: 100%;
+            padding: 0.8rem;
+            background: #4fc3f7;
+            border: none;
+            border-radius: 5px;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #login-form button:hover {
+            background: #29b6f6;
+            box-shadow: 0 0 10px #4fc3f7;
+        }
+
+        #oasis-world {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 5;
+        }
+
+        #hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        #player-info {
+            display: flex;
+            align-items: center;
+        }
+
+        #player-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #4fc3f7, #29b6f6);
+            margin-right: 1rem;
+            border: 2px solid #fff;
+        }
+
+        #player-name {
+            font-size: 1.2rem;
+            color: #4fc3f7;
+            text-shadow: 0 0 5px #4fc3f7;
+        }
+
+        #controls {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .control-btn {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #4fc3f7;
+            color: #4fc3f7;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            background: rgba(79, 195, 247, 0.2);
+            box-shadow: 0 0 10px #4fc3f7;
+        }
+
+        #planet-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 80%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #planet {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #1a237e, #0d47a1, #01579b);
+            box-shadow: 0 0 50px #4fc3f7;
+            position: relative;
+            animation: rotate 60s infinite linear;
+        }
+
+        #planet::before {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 20%;
+            width: 100px;
+            height: 100px;
+            background: rgba(79, 195, 247, 0.3);
+            border-radius: 50%;
+            filter: blur(20px);
+        }
+
+        #planet::after {
+            content: '';
+            position: absolute;
+            bottom: 15%;
+            right: 25%;
+            width: 150px;
+            height: 80px;
+            background: rgba(3, 169, 244, 0.2);
+            border-radius: 50%;
+            filter: blur(15px);
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        #portal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, #4fc3f7, transparent 70%);
+            border-radius: 50%;
+            box-shadow: 0 0 50px #4fc3f7;
+            animation: pulse 3s infinite alternate;
+            cursor: pointer;
+            z-index: 6;
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+            100% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+        }
+
+        #portal-text {
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #4fc3f7;
+            font-size: 1.2rem;
+            text-shadow: 0 0 10px #4fc3f7;
+            text-align: center;
+            width: 200px;
+        }
+
+        #game-world {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            background: radial-gradient(circle at center, #0d47a1 0%, #000 70%);
+            z-index: 7;
+        }
+
+        #game-hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        #back-btn {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #4fc3f7;
+            color: #4fc3f7;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #back-btn:hover {
+            background: rgba(79, 195, 247, 0.2);
+            box-shadow: 0 0 10px #4fc3f7;
+        }
+
+        #game-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            width: 80%;
+        }
+
+        #game-title {
+            font-size: 3rem;
+            color: #4fc3f7;
+            text-shadow: 0 0 20px #4fc3f7;
+            margin-bottom: 2rem;
+        }
+
+        #game-description {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            color: #b3e5fc;
+        }
+
+        #game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .game-btn {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #4fc3f7;
+            color: #4fc3f7;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .game-btn:hover {
+            background: rgba(79, 195, 247, 0.2);
+            box-shadow: 0 0 10px #4fc3f7;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="oasis-container">
+        <div id="stars"></div>
+        
+        <div id="login-screen">
+            <div id="login-form">
+                <h1>THE OASIS</h1>
+                <input type="text" id="username" placeholder="Username" autocomplete="off">
+                <input type="password" id="password" placeholder="Password" autocomplete="off">
+                <button id="login-btn">ENTER THE OASIS</button>
+            </div>
         </div>
-
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-white/5 p-2 rounded-md">
-            <input className="bg-transparent outline-none w-36" value={username} onChange={e => setUsername(e.target.value)} />
-            <button className="px-2 py-1 text-xs bg-white/10 rounded" onClick={() => { setUsername('Guest' + Math.floor(Math.random()*999)); }}>random</button>
-          </div>
-          <div className="flex items-center gap-2">
-            {avatars.map(a => (
-              <button key={a.id} className={`p-2 rounded ${avatar===a.id? 'ring-2 ring-white/40': 'hover:bg-white/5'}`} onClick={()=>setAvatar(a.id)} title={a.label}>
-                <AvatarThumb id={a.id} size={28} />
-              </button>
-            ))}
-          </div>
-        </div>
-      </header>
-
-      <main className="flex-1 p-6 grid grid-cols-3 gap-6">
-        <section className="col-span-2 bg-white/3 backdrop-blur-sm rounded-xl p-4 min-h-[60vh] flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <div className="font-semibold text-lg">{rooms.find(r=>r.id===room).name}</div>
-            <div className="flex gap-2">
-              {rooms.map(r => (
-                <button key={r.id} onClick={()=>setRoom(r.id)} className={`px-3 py-1 rounded ${room===r.id ? 'bg-white/10' : 'bg-white/5/10'}`}>
-                  {r.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex-1 grid grid-cols-3 gap-4">
-            <div className="col-span-2 rounded-lg p-3 bg-gradient-to-t from-white/2 to-transparent">
-              <Scene room={room} avatar={avatar} username={username} />
-            </div>
-
-            <div className="rounded-lg p-3 bg-white/2 flex flex-col">
-              <div className="font-medium mb-2">Mini-map</div>
-              <MiniMap room={room} />
-              <div className="mt-3 font-medium">Quick Actions</div>
-              <div className="flex flex-col gap-2 mt-2">
-                <button onClick={()=>alert('You warp to a new secret zone! (demo)')} className="py-2 rounded bg-white/10">Warp</button>
-                <button onClick={()=>{ setChatMessages(prev => [...prev, { id:Date.now(), user:'SYSTEM', avatar:'ghost', text:`${username} explored a hidden easter egg.`, time:new Date().toISOString()}]); }} className="py-2 rounded bg-white/6">Find Easter Egg</button>
-                <button onClick={()=>{ localStorage.clear(); window.location.reload(); }} className="py-2 rounded bg-red-600/60">Reset demo</button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <aside className="col-span-1 flex flex-col gap-4">
-          <div className="rounded-xl p-3 bg-white/3 flex-1 flex flex-col">
-            <div className="font-semibold">Chat</div>
-            <div className="flex-1 mt-3 overflow-auto space-y-2">
-              {chatMessages.slice(-50).map(m => (
-                <div key={m.id} className="flex gap-2 items-start">
-                  <AvatarThumb id={m.avatar} size={36} />
-                  <div>
-                    <div className="text-xs opacity-70">{m.user} • <span className="opacity-60 text-xxs">{new Date(m.time).toLocaleTimeString()}</span></div>
-                    <div className="mt-1 text-sm">{m.text}</div>
-                  </div>
+        
+        <div id="oasis-world">
+            <div id="hud">
+                <div id="player-info">
+                    <div id="player-avatar"></div>
+                    <div id="player-name">Guest</div>
                 </div>
-              ))}
+                <div id="controls">
+                    <button class="control-btn" id="profile-btn">Profile</button>
+                    <button class="control-btn" id="inventory-btn">Inventory</button>
+                    <button class="control-btn" id="settings-btn">Settings</button>
+                    <button class="control-btn" id="logout-btn">Logout</button>
+                </div>
             </div>
-
-            <div className="mt-3 flex gap-2">
-              <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter' && postMessage()} className="flex-1 rounded p-2 bg-transparent outline-none" placeholder="Say something..." />
-              <button onClick={postMessage} className="px-3 rounded bg-white/10">Send</button>
+            
+            <div id="planet-container">
+                <div id="planet"></div>
+                <div id="portal"></div>
+                <div id="portal-text">Enter Game World</div>
             </div>
-          </div>
-
-          <div className="rounded-xl p-3 bg-white/4">
-            <div className="font-semibold mb-2">Social Feed</div>
-            <div className="space-y-2">
-              <FeedItem text={`Welcome to ${rooms.find(r=>r.id===room).name}.`} small />
-              <FeedItem text={`${username} joined the Oasis.`} />
-              <FeedItem text={`Avatar set to ${avatars.find(a=>a.id===avatar).label}.`} />
-            </div>
-          </div>
-        </aside>
-      </main>
-
-      <footer className="p-3 text-center text-xs opacity-70">This is a fan-made, original demo. No movie assets are included.</footer>
-    </div>
-  );
-}
-
-function AvatarThumb({ id, size=40 }){
-  const style = { width: size, height: size };
-  if(id==='neon'){
-    return (
-      <div style={style} className="rounded-md bg-gradient-to-br from-pink-500 to-indigo-500 flex items-center justify-center font-bold">N</div>
-    );
-  }
-  if(id==='mech'){
-    return (<div style={style} className="rounded-md bg-gray-800 flex items-center justify-center">🤖</div>);
-  }
-  if(id==='pix'){
-    return (<div style={style} className="rounded-md bg-yellow-400 flex items-center justify-center font-mono">PIX</div>);
-  }
-  return (<div style={style} className="rounded-md bg-white/10 flex items-center justify-center">?</div>);
-}
-
-function Scene({ room, avatar, username }){
-  // Simple scene which changes layout/colours based on room
-  const bg = {
-    lobby: 'from-[#05203A] to-[#0B1020]',
-    arcade: 'from-[#0b021f] to-[#2b004b]',
-    sky: 'from-[#002b3a] to-[#005a9c]',
-    forest: 'from-[#012a0f] to-[#003b2a]'
-  }[room] || 'from-[#05203A] to-[#0B1020]';
-
-  return (
-    <div className={`h-full w-full rounded-lg p-4 bg-gradient-to-br ${bg} relative overflow-hidden`}>
-      <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} className="absolute -left-20 -top-20 w-96 h-96 rounded-full blur-3xl opacity-40 bg-white/5"></motion.div>
-
-      <div className="flex items-center gap-4">
-        <div className="w-20 h-20 rounded-md bg-white/6 flex items-center justify-center text-2xl font-bold">{username[0]||'G'}</div>
-        <div>
-          <div className="text-sm opacity-80">{username}</div>
-          <div className="text-xs opacity-60">{room === 'arcade' ? 'High-score: 12345' : 'Exploring...'}</div>
         </div>
-      </div>
-
-      <div className="mt-6 grid grid-cols-3 gap-4">
-        <Tile title="Portal" subtitle="Enter a world" onClick={()=>alert('Portal opened (demo)')} />
-        <Tile title="Vendor" subtitle="Buy a shader" onClick={()=>alert('Purchased: Neon shine')} />
-        <Tile title="Arena" subtitle="Challenge" onClick={()=>alert('Entering arena...')} />
-      </div>
-
-      <div className="absolute right-4 bottom-4 flex items-center gap-3">
-        <div className="p-3 rounded bg-white/6">Avatar: <AvatarThumb id={avatar} size={32} /></div>
-        <div className="p-3 rounded bg-white/6">Room: {room}</div>
-      </div>
+        
+        <div id="game-world">
+            <div id="game-hud">
+                <button id="back-btn">Back to OASIS</button>
+            </div>
+            
+            <div id="game-content">
+                <h1 id="game-title">ANORAK'S QUEST</h1>
+                <p id="game-description">
+                    Welcome to the first challenge! Find the three keys hidden throughout the OASIS to unlock the Easter Egg.
+                    Your journey begins here. Explore different worlds, solve puzzles, and defeat enemies to progress.
+                </p>
+                <div id="game-controls">
+                    <button class="game-btn" id="start-quest-btn">Start Quest</button>
+                    <button class="game-btn" id="view-map-btn">View Map</button>
+                    <button class="game-btn" id="join-party-btn">Join Party</button>
+                </div>
+            </div>
+        </div>
     </div>
-  );
-}
 
-function Tile({ title, subtitle, onClick }){
-  return (
-    <motion.button whileHover={{ scale:1.03 }} whileTap={{ scale:0.98 }} onClick={onClick} className="rounded-lg p-3 bg-white/4 flex flex-col justify-between">
-      <div className="font-semibold">{title}</div>
-      <div className="text-xs opacity-70">{subtitle}</div>
-    </motion.button>
-  );
-}
+    <script>
+        // Create stars background
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            const starCount = 200;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                const size = Math.random() * 3;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                
+                const opacity = Math.random() * 0.8 + 0.2;
+                star.style.opacity = opacity;
+                
+                starsContainer.appendChild(star);
+            }
+        }
 
-function MiniMap({ room }){
-  return (
-    <div className="mt-2 p-2 rounded bg-white/6">
-      <svg viewBox="0 0 120 80" className="w-full h-32">
-        <rect x="0" y="0" width="120" height="80" rx="6" fill="rgba(255,255,255,0.03)" />
-        <circle cx="20" cy="60" r="4" fill="white" opacity="0.7" />
-        <circle cx="60" cy="30" r="5" fill="white" />
-        <circle cx="95" cy="45" r="3" fill="white" opacity="0.6" />
-        <text x="8" y="19" fontSize="6" fill="white">{room}</text>
-      </svg>
-    </div>
-  );
-}
+        // Login functionality
+        document.getElementById('login-btn').addEventListener('click', function() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username && password) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('oasis-world').style.display = 'block';
+                document.getElementById('player-name').textContent = username;
+            } else {
+                alert('Please enter both username and password');
+            }
+        });
 
-function FeedItem({ text, small=false }){
-  return (
-    <div className={`p-2 rounded bg-white/6 ${small ? 'text-sm opacity-80' : ''}`}>{text}</div>
-  );
-}
+        // Enter game world
+        document.getElementById('portal').addEventListener('click', function() {
+            document.getElementById('oasis-world').style.display = 'none';
+            document.getElementById('game-world').style.display = 'block';
+        });
+
+        // Back to OASIS
+        document.getElementById('back-btn').addEventListener('click', function() {
+            document.getElementById('game-world').style.display = 'none';
+            document.getElementById('oasis-world').style.display = 'block';
+        });
+
+        // Logout functionality
+        document.getElementById('logout-btn').addEventListener('click', function() {
+            document.getElementById('oasis-world').style.display = 'none';
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        });
+
+        // Initialize the OASIS
+        window.onload = function() {
+            createStars();
+            
+            // Add enter key login
+            document.getElementById('password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('login-btn').click();
+                }
+            });
+        };
+    </script>
+</body>
+</html>
