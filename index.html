@@ -3,600 +3,675 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini Oasis - Single File Prototype</title>
+    <title>NEXUS METAVERSE - Ultimate Single-File Oasis</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
         body { 
-            font-family: 'Courier New', monospace;
+            font-family: 'Rajdhani', sans-serif;
             background: #000;
-            color: #0f0;
+            color: #fff;
             overflow: hidden;
+            background: radial-gradient(circle at center, #0a0e17 0%, #000000 100%);
+        }
+        
+        #loadingScreen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Orbitron', monospace;
+        }
+        
+        .loadingBar {
+            width: 300px;
+            height: 4px;
+            background: rgba(0, 255, 255, 0.1);
+            margin-top: 20px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .loadingFill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00f7ff, #7700ff);
+            transition: width 0.3s ease;
         }
         
         #gameContainer {
             position: relative;
             width: 100vw;
             height: 100vh;
+            filter: contrast(1.1) brightness(1.05);
         }
         
         canvas {
             display: block;
-            background: linear-gradient(to bottom, #001122, #000811);
         }
         
-        #ui {
+        /* Glowing UI Elements */
+        .panel {
+            background: rgba(10, 15, 30, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.1),
+                        inset 0 0 20px rgba(0, 150, 255, 0.05);
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .panel:hover {
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 0 0 40px rgba(0, 200, 255, 0.2);
+        }
+        
+        #mainUI {
             position: absolute;
             top: 20px;
             left: 20px;
             z-index: 100;
-            background: rgba(0, 20, 40, 0.8);
-            padding: 15px;
-            border: 2px solid #0ff;
-            border-radius: 10px;
-            width: 300px;
+            width: 320px;
         }
         
-        .zone {
-            margin: 10px 0;
-            padding: 10px;
-            background: rgba(0, 50, 100, 0.5);
-            border: 1px solid #0ff;
+        #zoneNav {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .zoneBtn {
+            padding: 12px;
+            background: linear-gradient(145deg, rgba(0, 30, 60, 0.8), rgba(0, 20, 40, 0.9));
+            border: 1px solid rgba(0, 150, 255, 0.4);
+            border-radius: 8px;
+            color: #a0e7ff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s ease;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
         }
         
-        .zone:hover {
-            background: rgba(0, 100, 200, 0.7);
-            transform: translateX(5px);
+        .zoneBtn:hover {
+            transform: translateY(-2px);
+            border-color: #00f7ff;
+            box-shadow: 0 0 20px rgba(0, 247, 255, 0.3);
+            background: linear-gradient(145deg, rgba(0, 50, 100, 0.9), rgba(0, 30, 60, 1));
         }
         
-        .zone.active {
-            background: rgba(0, 200, 255, 0.3);
-            border-color: #ff0;
-        }
-        
-        #playerInfo {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border: 1px solid #0f0;
-        }
-        
-        #chat {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 300px;
-            height: 200px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 1px solid #f0f;
-            padding: 10px;
-            overflow-y: auto;
-        }
-        
-        .message {
-            margin: 5px 0;
+        .zoneBtn.active {
+            background: linear-gradient(145deg, rgba(0, 100, 200, 0.9), rgba(0, 50, 150, 1));
+            border-color: #00ff88;
+            box-shadow: 0 0 25px rgba(0, 255, 136, 0.4);
             color: #fff;
-        }
-        
-        .message.system { color: #0ff; }
-        .message.player { color: #ff0; }
-        
-        #avatarCustomizer {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.95);
-            padding: 30px;
-            border: 3px solid #f0f;
-            z-index: 1000;
-            display: none;
-        }
-        
-        .colorPicker {
-            width: 40px;
-            height: 40px;
-            display: inline-block;
-            margin: 5px;
-            cursor: pointer;
-            border: 2px solid #fff;
         }
         
         #hud {
             position: absolute;
             top: 20px;
             right: 20px;
+            z-index: 100;
             text-align: right;
+            width: 200px;
         }
         
-        button {
-            background: linear-gradient(45deg, #00f, #0ff);
-            border: none;
-            padding: 10px 20px;
-            margin: 5px;
-            color: white;
-            font-weight: bold;
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 6px;
+            border-left: 3px solid #00f7ff;
+        }
+        
+        #playerCard {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 250px;
+            z-index: 100;
+        }
+        
+        .avatarPreview {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid #00f7ff;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin-right: 15px;
+        }
+        
+        #inventory {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .inventorySlot {
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 30, 60, 0.7);
+            border: 1px solid rgba(0, 150, 255, 0.3);
+            border-radius: 6px;
+            margin: 3px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
             cursor: pointer;
-            border-radius: 5px;
         }
         
-        button:hover {
-            background: linear-gradient(45deg, #0ff, #00f);
+        .inventorySlot:hover {
+            border-color: #00ff88;
+            transform: scale(1.1);
         }
+        
+        #chatContainer {
+            position: absolute;
+            bottom: 240px;
+            right: 20px;
+            width: 300px;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #chatMessages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(0, 10, 20, 0.8);
+            border-radius: 8px;
+        }
+        
+        .chatMessage {
+            margin: 5px 0;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            border-left: 3px solid;
+        }
+        
+        .system { border-left-color: #00f7ff; }
+        .player { border-left-color: #00ff88; }
+        .npc { border-left-color: #ff7700; }
+        
+        #chatInput {
+            padding: 10px;
+            background: rgba(0, 20, 40, 0.9);
+            border: 1px solid rgba(0, 150, 255, 0.5);
+            border-radius: 6px;
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+        }
+        
+        /* Modal Windows */
+        .modal {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            display: none;
+            min-width: 400px;
+        }
+        
+        .modalContent {
+            background: linear-gradient(145deg, #0a1525, #051122);
+            border: 2px solid #00f7ff;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 0 100px rgba(0, 200, 255, 0.2);
+        }
+        
+        .closeBtn {
+            position: absolute;
+            top: 15px; right: 15px;
+            background: transparent;
+            border: none;
+            color: #00f7ff;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background: rgba(0, 30, 60, 0.7);
+            border: none;
+            color: #a0e7ff;
+            cursor: pointer;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        
+        .tab.active {
+            background: rgba(0, 100, 200, 0.9);
+            color: #fff;
+        }
+        
+        .tabContent {
+            display: none;
+            padding: 20px 0;
+        }
+        
+        .tabContent.active {
+            display: block;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 20, 40, 0.5);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #00f7ff, #7700ff);
+            border-radius: 4px;
+        }
+        
+        /* Particle Effects */
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            #mainUI, #hud, #playerCard, #chatContainer {
+                transform: scale(0.9);
+            }
+        }
+        
+        /* Animations */
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(0, 247, 255, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(0, 247, 255, 0.8); }
+        }
+        
+        .pulse { animation: pulse 2s infinite; }
+        .float { animation: float 3s ease-in-out infinite; }
+        .glow { animation: glow 2s infinite; }
     </style>
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen">
+        <h1 style="font-size: 3em; background: linear-gradient(90deg, #00f7ff, #7700ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px;">NEXUS METAVERSE</h1>
+        <p style="color: #a0e7ff; margin-bottom: 30px;">Initializing quantum reality...</p>
+        <div class="loadingBar">
+            <div class="loadingFill" id="loadingFill"></div>
+        </div>
+        <p id="loadingText" style="margin-top: 20px; color: #667eea;">Loading core systems...</p>
+    </div>
+
+    <!-- Game Container -->
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         
-        <div id="ui">
-            <h2>🌐 OASIS PORTAL</h2>
-            <div class="zone active" onclick="enterZone('hub')">🏛️ CENTRAL HUB</div>
-            <div class="zone" onclick="enterZone('racing')">🏎️ RACING ARENA</div>
-            <div class="zone" onclick="enterZone('arcade')">🎮 RETRO ARCADE</div>
-            <div class="zone" onclick="enterZone('social')">💬 SOCIAL LOUNGE</div>
+        <!-- Main UI Panel -->
+        <div id="mainUI" class="panel">
+            <h2 style="font-family: 'Orbitron'; color: #00f7ff; margin-bottom: 15px;">🌌 NEXUS CONTROL</h2>
             
-            <div style="margin-top: 20px;">
-                <button onclick="openAvatarCustomizer()">👤 CUSTOMIZE AVATAR</button>
-                <button onclick="toggleChat()">💬 TOGGLE CHAT</button>
-                <button onclick="addCoin(100)">🪙 +100 COINS</button>
+            <div id="zoneNav">
+                <button class="zoneBtn active" onclick="changeZone('nexus')">
+                    <span style="font-size: 18px;">🏛️</span> NEXUS CENTRAL
+                </button>
+                <button class="zoneBtn" onclick="changeZone('cybercity')">
+                    <span style="font-size: 18px;">🌆</span> CYBER CITY
+                </button>
+                <button class="zoneBtn" onclick="changeZone('arena')">
+                    <span style="font-size: 18px;">⚔️</span> COMBAT ARENA
+                </button>
+                <button class="zoneBtn" onclick="changeZone('market')">
+                    <span style="font-size: 18px;">🏪</span> DIGITAL MARKET
+                </button>
+                <button class="zoneBtn" onclick="changeZone('academy')">
+                    <span style="font-size: 18px;">🎓</span> AI ACADEMY
+                </button>
+                <button class="zoneBtn" onclick="changeZone('void')">
+                    <span style="font-size: 18px;">🌀</span> THE VOID
+                </button>
+            </div>
+            
+            <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <button onclick="openModal('avatarModal')" class="zoneBtn" style="flex: 1; min-width: 120px;">👤 AVATAR</button>
+                <button onclick="openModal('inventoryModal')" class="zoneBtn" style="flex: 1; min-width: 120px;">🎒 INVENTORY</button>
+                <button onclick="openModal('skillsModal')" class="zoneBtn" style="flex: 1; min-width: 120px;">⚡ SKILLS</button>
+                <button onclick="openModal('mapModal')" class="zoneBtn" style="flex: 1; min-width: 120px;">🗺️ MAP</button>
+                <button onclick="openModal('settingsModal')" class="zoneBtn" style="flex: 1; min-width: 120px;">⚙️ SETTINGS</button>
             </div>
         </div>
         
-        <div id="playerInfo">
-            <div>👤 PLAYER: <span id="playerName">USER_001</span></div>
-            <div>🪙 COINS: <span id="coins">1000</span></div>
-            <div>📍 ZONE: <span id="currentZone">Central Hub</span></div>
+        <!-- HUD -->
+        <div id="hud" class="panel">
+            <div class="stat">
+                <span>⏱️ FPS:</span>
+                <span id="fpsCounter" style="color: #00ff88;">60</span>
+            </div>
+            <div class="stat">
+                <span>👥 PLAYERS:</span>
+                <span id="playerCount">1</span>
+            </div>
+            <div class="stat">
+                <span>📍 ZONE:</span>
+                <span id="currentZone" style="color: #00f7ff;">NEXUS</span>
+            </div>
+            <div class="stat">
+                <span>📶 PING:</span>
+                <span id="pingCounter" style="color: #00ff88;">12ms</span>
+            </div>
         </div>
         
-        <div id="hud">
-            <div id="fpsCounter">FPS: 60</div>
-            <div id="playerCount">PLAYERS: 1</div>
+        <!-- Player Card -->
+        <div id="playerCard" class="panel">
+            <div style="display: flex; align-items: center;">
+                <div id="avatarDisplay" class="avatarPreview"></div>
+                <div>
+                    <h3 id="playerName" style="color: #00f7ff; font-family: 'Orbitron';">NEXUS_TRAVELER</h3>
+                    <div style="display: flex; gap: 15px; margin-top: 5px;">
+                        <div>
+                            <div style="font-size: 11px; color: #a0e7ff;">LEVEL</div>
+                            <div style="font-size: 20px; color: #ff7700;">01</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: #a0e7ff;">XP</div>
+                            <div style="font-size: 20px; color: #00ff88;">0/1000</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: #a0e7ff;">CREDITS</div>
+                            <div style="font-size: 20px; color: #ffdd00;">1000</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Health/Energy Bars -->
+            <div style="margin-top: 15px;">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
+                    <span>❤️ HEALTH</span>
+                    <span id="healthValue">100/100</span>
+                </div>
+                <div style="height: 8px; background: rgba(255, 0, 0, 0.2); border-radius: 4px; overflow: hidden;">
+                    <div id="healthBar" style="height: 100%; width: 100%; background: linear-gradient(90deg, #ff0000, #ff7700);"></div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 10px;">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
+                    <span>⚡ ENERGY</span>
+                    <span id="energyValue">100/100</span>
+                </div>
+                <div style="height: 8px; background: rgba(0, 150, 255, 0.2); border-radius: 4px; overflow: hidden;">
+                    <div id="energyBar" style="height: 100%; width: 100%; background: linear-gradient(90deg, #00aaff, #00ffaa);"></div>
+                </div>
+            </div>
         </div>
         
-        <div id="chat" style="display: none;">
-            <div class="message system">Welcome to Mini Oasis!</div>
-            <div class="message system">Type /help for commands</div>
-            <div class="message player">Player1: Hello world!</div>
-            <input type="text" id="chatInput" placeholder="Type message..." style="width: 100%; margin-top: 10px; padding: 5px;">
+        <!-- Chat -->
+        <div id="chatContainer" class="panel">
+            <div id="chatMessages">
+                <div class="chatMessage system">Welcome to Nexus Metaverse!</div>
+                <div class="chatMessage system">Type /help for commands</div>
+            </div>
+            <input type="text" id="chatInput" placeholder="Type message... (Press Enter to send, ESC to close)" />
         </div>
         
-        <div id="avatarCustomizer">
-            <h2>AVATAR CUSTOMIZER</h2>
-            <div>
-                <label>Name: <input type="text" id="avatarName" value="USER_001"></label>
+        <!-- Quick Actions Bar -->
+        <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100;">
+            <div style="display: flex; gap: 10px; background: rgba(0, 20, 40, 0.8); padding: 10px; border-radius: 20px;">
+                <button onclick="quickAction('jump')" class="zoneBtn" style="width: 50px; height: 50px;">🚀</button>
+                <button onclick="quickAction('run')" class="zoneBtn" style="width: 50px; height: 50px;">🏃</button>
+                <button onclick="quickAction('interact')" class="zoneBtn glow" style="width: 50px; height: 50px;">🖱️</button>
+                <button onclick="quickAction('fly')" class="zoneBtn" style="width: 50px; height: 50px;">🕊️</button>
+                <button onclick="quickAction('emote')" class="zoneBtn" style="width: 50px; height: 50px;">💃</button>
             </div>
-            <div style="margin: 15px 0;">
-                <strong>Body Color:</strong><br>
-                <div class="colorPicker" style="background: #3498db;" onclick="setAvatarColor('#3498db')"></div>
-                <div class="colorPicker" style="background: #e74c3c;" onclick="setAvatarColor('#e74c3c')"></div>
-                <div class="colorPicker" style="background: #2ecc71;" onclick="setAvatarColor('#2ecc71')"></div>
-                <div class="colorPicker" style="background: #f1c40f;" onclick="setAvatarColor('#f1c40f')"></div>
-                <div class="colorPicker" style="background: #9b59b6;" onclick="setAvatarColor('#9b59b6')"></div>
+        </div>
+    </div>
+    
+    <!-- Modal Windows -->
+    <div id="avatarModal" class="modal">
+        <div class="modalContent" style="width: 600px;">
+            <button class="closeBtn" onclick="closeModal('avatarModal')">×</button>
+            <h2 style="color: #00f7ff; margin-bottom: 20px;">👤 AVATAR CUSTOMIZATION</h2>
+            
+            <div style="display: flex; gap: 30px;">
+                <div style="flex: 1;">
+                    <div id="avatarPreview3D" style="width: 200px; height: 300px; background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 10px; margin: 0 auto;"></div>
+                </div>
+                
+                <div style="flex: 2;">
+                    <div class="tabs">
+                        <button class="tab active" onclick="switchTab('appearance')">Appearance</button>
+                        <button class="tab" onclick="switchTab('equipment')">Equipment</button>
+                        <button class="tab" onclick="switchTab('emotes')">Emotes</button>
+                    </div>
+                    
+                    <div id="appearance" class="tabContent active">
+                        <h3 style="margin: 15px 0 10px 0; color: #00ff88;">Body Type</h3>
+                        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                            <button onclick="setBodyType('human')" class="zoneBtn" style="flex: 1;">👤 Human</button>
+                            <button onclick="setBodyType('cyborg')" class="zoneBtn" style="flex: 1;">🤖 Cyborg</button>
+                            <button onclick="setBodyType('android')" class="zoneBtn" style="flex: 1;">⚡ Android</button>
+                        </div>
+                        
+                        <h3 style="margin: 15px 0 10px 0; color: #00ff88;">Skin Color</h3>
+                        <div id="skinColors" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;"></div>
+                        
+                        <h3 style="margin: 15px 0 10px 0; color: #00ff88;">Features</h3>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                            <button onclick="toggleFeature('horns')" class="zoneBtn">👹 Horns</button>
+                            <button onclick="toggleFeature('wings')" class="zoneBtn">🪽 Wings</button>
+                            <button onclick="toggleFeature('tail')" class="zoneBtn">🐉 Tail</button>
+                            <button onclick="toggleFeature('glow')" class="zoneBtn">✨ Glow</button>
+                            <button onclick="toggleFeature('hologram')" class="zoneBtn">👻 Hologram</button>
+                            <button onclick="toggleFeature('shield')" class="zoneBtn">🛡️ Shield</button>
+                        </div>
+                    </div>
+                    
+                    <div id="equipment" class="tabContent">
+                        <h3 style="margin: 15px 0 10px 0; color: #00ff88;">Equipment</h3>
+                        <!-- Equipment slots will be generated here -->
+                    </div>
+                    
+                    <div id="emotes" class="tabContent">
+                        <h3 style="margin: 15px 0 10px 0; color: #00ff88;">Emotes</h3>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                            <button onclick="playEmote('wave')" class="zoneBtn">👋 Wave</button>
+                            <button onclick="playEmote('dance')" class="zoneBtn">💃 Dance</button>
+                            <button onclick="playEmote('laugh')" class="zoneBtn">😂 Laugh</button>
+                            <button onclick="playEmote('bow')" class="zoneBtn">🙇 Bow</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div style="margin: 15px 0;">
-                <strong>Accessory:</strong><br>
-                <button onclick="setAccessory('none')">None</button>
-                <button onclick="setAccessory('hat')">🎩 Hat</button>
-                <button onclick="setAccessory('glasses')">👓 Glasses</button>
-                <button onclick="setAccessory('jetpack')">🚀 Jetpack</button>
+            
+            <button onclick="saveAvatar()" style="width: 100%; margin-top: 20px; padding: 15px; background: linear-gradient(90deg, #00f7ff, #7700ff); border: none; color: white; font-weight: bold; border-radius: 8px; cursor: pointer;">SAVE AVATAR</button>
+        </div>
+    </div>
+    
+    <!-- Inventory Modal -->
+    <div id="inventoryModal" class="modal">
+        <div class="modalContent" style="width: 700px;">
+            <button class="closeBtn" onclick="closeModal('inventoryModal')">×</button>
+            <h2 style="color: #00f7ff; margin-bottom: 20px;">🎒 INVENTORY</h2>
+            
+            <div style="display: flex; gap: 30px;">
+                <div style="flex: 1;">
+                    <h3 style="color: #00ff88; margin-bottom: 10px;">Items (24/50)</h3>
+                    <div id="inventoryGrid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-height: 300px; overflow-y: auto; padding: 10px; background: rgba(0, 10, 20, 0.5); border-radius: 8px;"></div>
+                </div>
+                
+                <div style="flex: 1;">
+                    <h3 style="color: #00ff88; margin-bottom: 10px;">Selected Item</h3>
+                    <div id="itemPreview" style="background: rgba(0, 20, 40, 0.5); padding: 20px; border-radius: 8px; text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center;">
+                        <div style="font-size: 48px;">?</div>
+                        <div style="margin-top: 10px; color: #a0e7ff;">Select an item</div>
+                    </div>
+                    
+                    <div id="itemActions" style="margin-top: 20px;">
+                        <button onclick="useItem()" class="zoneBtn" style="width: 100%; margin-bottom: 10px;">USE ITEM</button>
+                        <button onclick="dropItem()" class="zoneBtn" style="width: 100%; margin-bottom: 10px;">DROP ITEM</button>
+                        <button onclick="tradeItem()" class="zoneBtn" style="width: 100%;">TRADE ITEM</button>
+                    </div>
+                </div>
             </div>
-            <button onclick="saveAvatar()" style="width: 100%;">SAVE & CLOSE</button>
+        </div>
+    </div>
+    
+    <!-- Skills Modal -->
+    <div id="skillsModal" class="modal">
+        <div class="modalContent" style="width: 800px;">
+            <button class="closeBtn" onclick="closeModal('skillsModal')">×</button>
+            <h2 style="color: #00f7ff; margin-bottom: 20px;">⚡ SKILLS & ABILITIES</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                <div class="skillCategory">
+                    <h3 style="color: #00ff88; margin-bottom: 10px;">🚀 Movement</h3>
+                    <div class="skill" data-skill="speed">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Super Speed</span>
+                            <span>Level 2/5</span>
+                        </div>
+                        <div style="height: 6px; background: rgba(0, 150, 255, 0.2); border-radius: 3px; margin-top: 5px;">
+                            <div style="width: 40%; height: 100%; background: linear-gradient(90deg, #00aaff, #00ffaa); border-radius: 3px;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="skillCategory">
+                    <h3 style="color: #ff7700; margin-bottom: 10px;">⚔️ Combat</h3>
+                    <div class="skill" data-skill="strength">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Enhanced Strength</span>
+                            <span>Level 1/5</span>
+                        </div>
+                        <div style="height: 6px; background: rgba(255, 100, 0, 0.2); border-radius: 3px; margin-top: 5px;">
+                            <div style="width: 20%; height: 100%; background: linear-gradient(90deg, #ff5500, #ffaa00); border-radius: 3px;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="skillCategory">
+                    <h3 style="color: #ff00ff; margin-bottom: 10px;">🔮 Magic</h3>
+                    <div class="skill" data-skill="teleport">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Teleportation</span>
+                            <span>Level 3/5</span>
+                        </div>
+                        <div style="height: 6px; background: rgba(255, 0, 255, 0.2); border-radius: 3px; margin-top: 5px;">
+                            <div style="width: 60%; height: 100%; background: linear-gradient(90deg, #ff00ff, #7700ff); border-radius: 3px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 30px;">
+                <h3 style="color: #00ff88; margin-bottom: 15px;">Skill Points Available: <span id="skillPoints">5</span></h3>
+                <button onclick="upgradeSkill('speed')" class="zoneBtn">Upgrade Speed (Cost: 1)</button>
+                <button onclick="upgradeSkill('strength')" class="zoneBtn">Upgrade Strength (Cost: 1)</button>
+                <button onclick="upgradeSkill('teleport')" class="zoneBtn">Upgrade Teleport (Cost: 2)</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Map Modal -->
+    <div id="mapModal" class="modal">
+        <div class="modalContent" style="width: 900px; height: 600px;">
+            <button class="closeBtn" onclick="closeModal('mapModal')">×</button>
+            <h2 style="color: #00f7ff; margin-bottom: 20px;">🗺️ NEXUS WORLD MAP</h2>
+            <div id="worldMap" style="width: 100%; height: 500px; background: linear-gradient(135deg, #0a1525, #051122); border-radius: 8px; position: relative;"></div>
         </div>
     </div>
 
-    <script>
-        // ====================
-        // GLOBAL VARIABLES
-        // ====================
-        let canvas, ctx;
-        let player = { x: 400, y: 300, color: '#3498db', name: 'USER_001', accessory: 'none' };
-        let coins = 1000;
-        let currentZone = 'hub';
-        let zones = {
-            hub: { color: '#2c3e50', objects: [] },
-            racing: { color: '#34495e', objects: [] },
-            arcade: { color: '#7f8c8d', objects: [] },
-            social: { color: '#16a085', objects: [] }
-        };
-        let lastTime = 0;
-        let fps = 60;
-        let keys = {};
-        let otherPlayers = [
-            { x: 300, y: 200, color: '#e74c3c', name: 'Player2', accessory: 'hat' },
-            { x: 500, y: 400, color: '#2ecc71', name: 'Player3', accessory: 'glasses' }
-        ];
-        
-        // ====================
-        // INITIALIZATION
-        // ====================
-        function init() {
-            canvas = document.getElementById('gameCanvas');
-            ctx = canvas.getContext('2d');
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modalContent" style="width: 500px;">
+            <button class="closeBtn" onclick="closeModal('settingsModal')">×</button>
+            <h2 style="color: #00f7ff; margin-bottom: 20px;">⚙️ SETTINGS</h2>
             
-            // Set canvas to full window
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            
-            // Setup keyboard controls
-            window.addEventListener('keydown', (e) => keys[e.key.toLowerCase()] = true);
-            window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
-            
-            // Setup chat input
-            document.getElementById('chatInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    sendMessage();
-                }
-            });
-            
-            // Setup zone objects
-            initializeZones();
-            
-            // Start game loop
-            requestAnimationFrame(gameLoop);
-            
-            // Update UI
-            updateUI();
-            
-            console.log('Mini Oasis loaded!');
-        }
-        
-        // ====================
-        // ZONE SYSTEM
-        // ====================
-        function initializeZones() {
-            // Hub objects
-            zones.hub.objects = [
-                { type: 'building', x: 100, y: 100, width: 200, height: 150, color: '#8e44ad' },
-                { type: 'portal', x: 600, y: 500, width: 50, height: 100, color: '#f39c12', target: 'racing' },
-                { type: 'coin', x: 300, y: 300, collected: false }
-            ];
-            
-            // Racing zone objects
-            zones.racing.objects = [
-                { type: 'track', x: 200, y: 100, width: 400, height: 400, color: '#95a5a6' },
-                { type: 'car', x: 250, y: 150, width: 30, height: 60, color: '#e74c3c' },
-                { type: 'finish', x: 200, y: 450, width: 400, height: 10, color: '#f1c40f' }
-            ];
-            
-            // Arcade zone objects
-            zones.arcade.objects = [
-                { type: 'machine', x: 150, y: 200, width: 100, height: 150, color: '#9b59b6', game: 'space' },
-                { type: 'machine', x: 350, y: 200, width: 100, height: 150, color: '#1abc9c', game: 'puzzle' },
-                { type: 'machine', x: 550, y: 200, width: 100, height: 150, color: '#d35400', game: 'racing' }
-            ];
-            
-            // Social zone objects
-            zones.social.objects = [
-                { type: 'sofa', x: 200, y: 300, width: 200, height: 50, color: '#c0392b' },
-                { type: 'table', x: 400, y: 300, width: 100, height: 100, color: '#7d3c98' },
-                { type: 'jukebox', x: 600, y: 300, width: 80, height: 120, color: '#2980b9' }
-            ];
-        }
-        
-        function enterZone(zoneId) {
-            currentZone = zoneId;
-            
-            // Update UI
-            document.querySelectorAll('.zone').forEach(z => z.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById('currentZone').textContent = zoneId.charAt(0).toUpperCase() + zoneId.slice(1);
-            
-            // Position player in zone center
-            player.x = canvas.width / 2;
-            player.y = canvas.height / 2;
-            
-            // Add system message
-            addChatMessage(`System: Entered ${zoneId} zone`, 'system');
-        }
-        
-        // ====================
-        // GAME LOOP
-        // ====================
-        function gameLoop(timestamp) {
-            // Calculate delta time
-            const deltaTime = timestamp - lastTime || 0;
-            lastTime = timestamp;
-            
-            // Calculate FPS
-            fps = Math.round(1000 / deltaTime);
-            
-            // Clear canvas
-            ctx.fillStyle = zones[currentZone].color;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw zone-specific objects
-            drawZoneObjects();
-            
-            // Handle player input
-            handleInput(deltaTime);
-            
-            // Draw other players
-            drawOtherPlayers();
-            
-            // Draw player
-            drawPlayer();
-            
-            // Draw HUD
-            drawHUD();
-            
-            // Check collisions
-            checkCollisions();
-            
-            // Update FPS counter
-            document.getElementById('fpsCounter').textContent = `FPS: ${fps}`;
-            
-            // Continue loop
-            requestAnimationFrame(gameLoop);
-        }
-        
-        // ====================
-        // DRAWING FUNCTIONS
-        // ====================
-        function drawZoneObjects() {
-            zones[currentZone].objects.forEach(obj => {
-                ctx.fillStyle = obj.color;
+            <div class="setting">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span>Graphics Quality</span>
+                    <select id="graphicsQuality" style="background: rgba(0, 20, 40, 0.8); color: white; border: 1px solid #00f7ff; padding: 5px; border-radius: 4px;">
+                        <option>Low</option>
+                        <option selected>Medium</option>
+                        <option>High</option>
+                        <option>Ultra</option>
+                    </select>
+                </div>
                 
-                switch(obj.type) {
-                    case 'building':
-                        ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
-                        // Add windows
-                        ctx.fillStyle = '#f1c40f';
-                        for(let i = 0; i < 3; i++) {
-                            for(let j = 0; j < 2; j++) {
-                                ctx.fillRect(obj.x + 20 + i*50, obj.y + 20 + j*40, 20, 20);
-                            }
-                        }
-                        break;
-                        
-                    case 'portal':
-                        ctx.fillStyle = obj.color;
-                        ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
-                        ctx.fillStyle = '#000';
-                        ctx.font = '20px Arial';
-                        ctx.fillText('→', obj.x + 15, obj.y + 60);
-                        break;
-                        
-                    case 'coin':
-                        if(!obj.collected) {
-                            ctx.fillStyle = '#f1c40f';
-                            ctx.beginPath();
-                            ctx.arc(obj.x, obj.y, 15, 0, Math.PI * 2);
-                            ctx.fill();
-                            ctx.fillStyle = '#000';
-                            ctx.font = 'bold 16px Arial';
-                            ctx.fillText('$', obj.x - 5, obj.y + 5);
-                        }
-                        break;
-                        
-                    case 'track':
-                        ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
-                        ctx.strokeStyle = '#fff';
-                        ctx.lineWidth = 5;
-                        ctx.strokeRect(obj.x, obj.y, obj.width, obj.height);
-                        break;
-                        
-                    case 'machine':
-                        ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
-                        ctx.fillStyle = '#fff';
-                        ctx.font = '12px Arial';
-                        ctx.fillText(obj.game.toUpperCase(), obj.x + 10, obj.y + 80);
-                        break;
-                        
-                    default:
-                        ctx.fillRect(obj.x, obj.y, obj.width, obj.height);
-                }
-            });
-        }
-        
-        function drawPlayer() {
-            // Draw body
-            ctx.fillStyle = player.color;
-            ctx.fillRect(player.x - 15, player.y - 25, 30, 50);
-            
-            // Draw head
-            ctx.fillStyle = '#f1c2a9';
-            ctx.beginPath();
-            ctx.arc(player.x, player.y - 40, 15, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Draw accessory
-            switch(player.accessory) {
-                case 'hat':
-                    ctx.fillStyle = '#8b4513';
-                    ctx.fillRect(player.x - 20, player.y - 60, 40, 15);
-                    ctx.fillRect(player.x - 15, player.y - 75, 30, 15);
-                    break;
-                case 'glasses':
-                    ctx.fillStyle = '#000';
-                    ctx.fillRect(player.x - 20, player.y - 42, 15, 5);
-                    ctx.fillRect(player.x + 5, player.y - 42, 15, 5);
-                    ctx.fillRect(player.x - 5, player.y - 42, 10, 2);
-                    break;
-                case 'jetpack':
-                    ctx.fillStyle = '#7f8c8d';
-                    ctx.fillRect(player.x + 20, player.y - 10, 15, 30);
-                    ctx.fillStyle = '#e74c3c';
-                    ctx.fillRect(player.x + 22, player.y + 20, 11, 20);
-                    break;
-            }
-            
-            // Draw player name
-            ctx.fillStyle = '#fff';
-            ctx.font = '12px Arial';
-            ctx.fillText(player.name, player.x - 25, player.y - 90);
-        }
-        
-        function drawOtherPlayers() {
-            otherPlayers.forEach(p => {
-                // Body
-                ctx.fillStyle = p.color;
-                ctx.fillRect(p.x - 15, p.y - 25, 30, 50);
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span>Music Volume</span>
+                    <input type="range" id="musicVolume" min="0" max="100" value="50" style="width: 200px;">
+                </div>
                 
-                // Head
-                ctx.fillStyle = '#f1c2a9';
-                ctx.beginPath();
-                ctx.arc(p.x, p.y - 40, 15, 0, Math.PI * 2);
-                ctx.fill();
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span>SFX Volume</span>
+                    <input type="range" id="sfxVolume" min="0" max="100" value="70" style="width: 200px;">
+                </div>
                 
-                // Name
-                ctx.fillStyle = '#fff';
-                ctx.font = '12px Arial';
-                ctx.fillText(p.name, p.x - 25, p.y - 90);
+                <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                    <span>Voice Chat</span>
+                    <label class="switch">
+                        <input type="checkbox" id="voiceChat" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
                 
-                // Simulate movement
-                p.x += Math.sin(Date.now() / 1000) * 0.5;
-                p.y += Math.cos(Date.now() / 1000) * 0.3;
-            });
-        }
-        
-        function drawHUD() {
-            // Draw mini-map
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            ctx.fillRect(10, 10, 150, 150);
-            ctx.fillStyle = '#fff';
-            ctx.font = '10px Arial';
-            ctx.fillText('MAP', 70, 20);
-            
-            // Draw zone indicator
-            ctx.fillStyle = zones[currentZone].color;
-            ctx.beginPath();
-            ctx.arc(85, 85, 40, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Draw player position on map
-            ctx.fillStyle = '#fff';
-            ctx.beginPath();
-            ctx.arc(85, 85, 5, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        
-        // ====================
-        // INPUT HANDLING
-        // ====================
-        function handleInput(deltaTime) {
-            const speed = 5;
-            
-            if(keys['w'] || keys['arrowup']) player.y -= speed;
-            if(keys['s'] || keys['arrowdown']) player.y += speed;
-            if(keys['a'] || keys['arrowleft']) player.x -= speed;
-            if(keys['d'] || keys['arrowright']) player.x += speed;
-            
-            // Keep player in bounds
-            player.x = Math.max(20, Math.min(canvas.width - 20, player.x));
-            player.y = Math.max(45, Math.min(canvas.height - 25, player.y));
-            
-            // Spacebar to jump (visual effect only)
-            if(keys[' ']) {
-                ctx.fillStyle = '#0ff';
-                ctx.beginPath();
-                ctx.arc(player.x, player.y + 30, 10, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-        
-        // ====================
-        // GAME LOGIC
-        // ====================
-        function checkCollisions() {
-            zones[currentZone].objects.forEach(obj => {
-                if(obj.type === 'coin' && !obj.collected) {
-                    const dist = Math.sqrt(Math.pow(player.x - obj.x, 2) + Math.pow(player.y - obj.y, 2));
-                    if(dist < 30) {
-                        obj.collected = true;
-                        addCoin(50);
-                        addChatMessage(`System: Found 50 coins!`, 'system');
-                    }
-                }
-                
-                if(obj.type === 'portal') {
-                    const inPortal = player.x > obj.x && player.x < obj.x + obj.width &&
-                                    player.y > obj.y && player.y < obj.y + obj.height;
-                    if(inPortal) {
-                        enterZone(obj.target);
-                    }
-                }
-            });
-        }
-        
-        // ====================
-        // UI FUNCTIONS
-        // ====================
-        function openAvatarCustomizer() {
-            document.getElementById('avatarCustomizer').style.display = 'block';
-        }
-        
-        function setAvatarColor(color) {
-            player.color = color;
-        }
-        
-        function setAccessory(type) {
-            player.accessory = type;
-        }
-        
-        function saveAvatar() {
-            player.name = document.getElementById('avatarName').value;
-            document.getElementById('avatarCustomizer').style.display = 'none';
-            document.getElementById('playerName').textContent = player.name;
-            addChatMessage(`System: Avatar updated!`, 'system');
-        }
-        
-        function toggleChat() {
-            const chat = document.getElementById('chat');
-            chat.style.display = chat.style.display === 'none' ? 'block' : 'none';
-        }
-        
-        function sendMessage() {
-            const input = document.getElementById('chatInput');
-            if(input.value.trim()) {
-                addChatMessage(`${player.name}: ${input.value}`, 'player');
-                input.value = '';
-                
-                // Simulate responses
-                setTimeout(() => {
-                    const responses = [
-                        "Cool!",
-                        "Welcome to the Oasis!",
-                        "Anyone want to race?",
-                        "Check out my new avatar!",
-                        "This place is awesome!"
-                    ];
-                    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-                    addChatMessage(`Player${Math.floor(Math.random()*5)+2}: ${randomResponse}`, 'player');
-                }, 1000);
-            }
-        }
-        
-        function addChatMessage(text, type) {
-            const chat = document.getElementById('chat');
-            const message = document.createElement('div');
-            message.className = `message ${type}`;
-            message.textContent = text;
-            chat.appendChild(message);
-            chat.scrollTop = chat.scrollHeight;
-        }
-        
-        function addCoin(amount) {
-            coins += amount;
-            updateUI();
-        }
-        
-        function updateUI() {
-            document.getElementById('coins').textContent = coins;
-            document.getElementById('playerCount').textContent = `PLAYERS: ${otherPlayers.length + 1}`;
-        }
-        
-        // ====================
-        // START THE GAME
-        // ====================
-        window.onload = init;
-        window.onresize = function() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        };
-    </script>
+                <button onclick="saveSettings()" class="zoneBtn" style="width: 100%; padding: 15px;">SAVE SETTINGS</button>
+                <button onclick="resetSettings()" class="zoneBtn" style="width: 100%; padding: 15px; margin-top: 10px;">RESET TO DEFAULT</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification System -->
+    <div id="notificationContainer" style="position: fixed; top: 100px; right: 20px; z-index: 1000; max-width: 300px;"></div>
+
+    <!-- Audio Elements (Hidden) -->
+    <audio id="bgMusic" loop>
+        <source src="https://assets.mixkit.co/music/preview/mixkit-tech-house-vibes-130.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="sfxClick">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- The complete JavaScript code continues in the next message (it's too long for one response) -->
+    <!-- [The JavaScript code will be provided in the next message due to character limits] -->
 </body>
 </html>
