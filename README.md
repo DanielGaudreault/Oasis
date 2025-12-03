@@ -15,18 +15,6 @@ A basic web-based 3D open-world experience inspired by *Ready Player One*'s OASI
 - **WASD**: Move avatar.
 - **UI Buttons**: Teleport to Social Hub, Race Track, or Arcade.
 
-## File Structure
-- `index.html`: Main HTML file.
-- `css/loading.css`: Loading screen styles.
-- `css/style.css`: General UI styles.
-- `js/RaceTrack.js`: Race track logic.
-- `js/SocialHub.js`: Social hub logic.
-- `js/arcade.js`: Arcade logic.
-- `js/avatarSystem.js`: Avatar movement and controls.
-- `js/main.js`: Main game loop and initialization.
-- `js/uiManager.js`: UI management.
-- `js/worldManager.js`: World and area management.
-
 ## Limitations
 - Single-player only.
 - Basic graphics (no textures or advanced lighting).
@@ -38,4 +26,4 @@ A basic web-based 3D open-world experience inspired by *Ready Player One*'s OASI
 - Add interactive arcade games.
 - Include backend for user accounts and persistence.
 
-Built with ❤️ by Grok 3 (xAI).
+Built with ❤️ 
