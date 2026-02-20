@@ -3,1554 +3,506 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXUS METAVERSE - Ultimate Single-File Oasis</title>
+    <title>OASIS – Ready Player One</title>
+    <!-- Font Awesome for icons (retro / grid / vr) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap');
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-        body { 
-            font-family: 'Rajdhani', sans-serif;
-            background: #000;
-            color: #fff;
-            overflow: hidden;
-            background: radial-gradient(circle at center, #0a0e17 0%, #000000 100%);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace;
         }
-        
-        #loadingScreen {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background: #000;
-            z-index: 9999;
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at 20% 30%, #0b0f2a, #020514);
             display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
-            font-family: 'Orbitron', monospace;
-        }
-        
-        .loadingBar {
-            width: 300px;
-            height: 4px;
-            background: rgba(0, 255, 255, 0.1);
-            margin-top: 20px;
-            border-radius: 2px;
-            overflow: hidden;
-        }
-        
-        .loadingFill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #00f7ff, #7700ff);
-            transition: width 0.3s ease;
-        }
-        
-        #gameContainer {
+            justify-content: center;
             position: relative;
-            width: 100vw;
-            height: 100vh;
-            filter: contrast(1.1) brightness(1.05);
-            display: none;
+            overflow-x: hidden;
+            color: #a0ffc0;
+            text-shadow: 0 0 8px #00ff88, 0 0 2px #00cc66;
         }
-        
-        canvas {
-            display: block;
-            cursor: crosshair;
-        }
-        
-        /* Glowing UI Elements */
-        .panel {
-            background: rgba(10, 15, 30, 0.85);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            border-radius: 12px;
-            box-shadow: 0 0 30px rgba(0, 200, 255, 0.1),
-                        inset 0 0 20px rgba(0, 150, 255, 0.05);
-            padding: 15px;
-            transition: all 0.3s ease;
-        }
-        
-        .panel:hover {
-            border-color: rgba(0, 255, 255, 0.6);
-            box-shadow: 0 0 40px rgba(0, 200, 255, 0.2);
-        }
-        
-        #mainUI {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 100;
-            width: 320px;
-        }
-        
-        #zoneNav {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .zoneBtn {
-            padding: 12px;
-            background: linear-gradient(145deg, rgba(0, 30, 60, 0.8), rgba(0, 20, 40, 0.9));
-            border: 1px solid rgba(0, 150, 255, 0.4);
-            border-radius: 8px;
-            color: #a0e7ff;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .zoneBtn:hover {
-            transform: translateY(-2px);
-            border-color: #00f7ff;
-            box-shadow: 0 0 20px rgba(0, 247, 255, 0.3);
-            background: linear-gradient(145deg, rgba(0, 50, 100, 0.9), rgba(0, 30, 60, 1));
-        }
-        
-        .zoneBtn.active {
-            background: linear-gradient(145deg, rgba(0, 100, 200, 0.9), rgba(0, 50, 150, 1));
-            border-color: #00ff88;
-            box-shadow: 0 0 25px rgba(0, 255, 136, 0.4);
-            color: #fff;
-        }
-        
-        #hud {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 100;
-            text-align: right;
-            width: 200px;
-        }
-        
-        .stat {
-            display: flex;
-            justify-content: space-between;
-            margin: 5px 0;
-            padding: 8px 12px;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 6px;
-            border-left: 3px solid #00f7ff;
-        }
-        
-        #playerCard {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            width: 250px;
-            z-index: 100;
-        }
-        
-        .avatarPreview {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: 2px solid #00f7ff;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin-right: 15px;
-        }
-        
-        #inventory {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 300px;
-            max-height: 200px;
-            overflow-y: auto;
-            display: none;
-        }
-        
-        .inventorySlot {
-            width: 50px;
-            height: 50px;
-            background: rgba(0, 30, 60, 0.7);
-            border: 1px solid rgba(0, 150, 255, 0.3);
-            border-radius: 6px;
-            margin: 3px;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 20px;
-            cursor: pointer;
-        }
-        
-        .inventorySlot:hover {
-            border-color: #00ff88;
-            transform: scale(1.1);
-        }
-        
-        #chatContainer {
-            position: absolute;
-            bottom: 240px;
-            right: 20px;
-            width: 300px;
-            height: 200px;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        #chatMessages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-            margin-bottom: 10px;
-            background: rgba(0, 10, 20, 0.8);
-            border-radius: 8px;
-        }
-        
-        .chatMessage {
-            margin: 5px 0;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 6px;
-            border-left: 3px solid;
-        }
-        
-        .system { border-left-color: #00f7ff; }
-        .player { border-left-color: #00ff88; }
-        .npc { border-left-color: #ff7700; }
-        
-        #chatInput {
-            padding: 10px;
-            background: rgba(0, 20, 40, 0.9);
-            border: 1px solid rgba(0, 150, 255, 0.5);
-            border-radius: 6px;
-            color: #fff;
-            font-family: 'Rajdhani', sans-serif;
-        }
-        
-        /* Modal Windows */
-        .modal {
+
+        /* digital rain / grid lines – pure 80s cyber */
+        .grid-overlay {
             position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1000;
-            display: none;
-            min-width: 400px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(20, 255, 140, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(20, 255, 140, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 2;
         }
-        
-        .modalContent {
-            background: linear-gradient(145deg, #0a1525, #051122);
-            border: 2px solid #00f7ff;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 0 100px rgba(0, 200, 255, 0.2);
-        }
-        
-        .closeBtn {
-            position: absolute;
-            top: 15px; right: 15px;
-            background: transparent;
-            border: none;
-            color: #00f7ff;
-            font-size: 24px;
-            cursor: pointer;
-        }
-        
-        .tab {
-            padding: 10px 20px;
-            background: rgba(0, 30, 60, 0.7);
-            border: none;
-            color: #a0e7ff;
-            cursor: pointer;
-            margin-right: 5px;
-            border-radius: 5px 5px 0 0;
-        }
-        
-        .tab.active {
-            background: rgba(0, 100, 200, 0.9);
-            color: #fff;
-        }
-        
-        .tabContent {
-            display: none;
-            padding: 20px 0;
-        }
-        
-        .tabContent.active {
-            display: block;
-        }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: rgba(0, 20, 40, 0.5);
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(to bottom, #00f7ff, #7700ff);
-            border-radius: 4px;
-        }
-        
-        /* Particle Effects */
-        .particle {
-            position: absolute;
+
+        /* floating hexagons (Easter egg / Halliday) */
+        .hex-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
             z-index: 1;
         }
-        
-        /* Quick Actions */
-        #quickActions {
+        .hex-bg span {
             position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
+            display: block;
+            width: 60px;
+            height: 60px;
+            background: transparent;
+            border: 1.5px solid rgba(0, 255, 170, 0.2);
+            clip-path: polygon(25% 0%, 75% 0%, 100% 25%, 75% 50%, 25% 50%, 0% 25%);
+            opacity: 0.4;
+            animation: floatHex 18s infinite linear;
+            box-shadow: 0 0 12px #00ffaa40;
+        }
+        @keyframes floatHex {
+            0% { transform: translateY(100vh) rotate(0deg) scale(0.8); opacity: 0.2; }
+            100% { transform: translateY(-20vh) rotate(360deg) scale(1.2); opacity: 0.6; }
+        }
+
+        /* main oasís card – like a retro terminal / arcade */
+        .oasis-panel {
+            position: relative;
+            z-index: 20;
+            width: 90%;
+            max-width: 1200px;
+            background: rgba(10, 20, 20, 0.5);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid #00ffaa;
+            box-shadow: 0 0 40px #00ffaa60, inset 0 0 20px #00ffaa20;
+            border-radius: 40px 40px 20px 20px;
+            padding: 2rem 2.5rem;
             display: flex;
-            gap: 10px;
-            background: rgba(0, 20, 40, 0.8);
-            padding: 10px;
+            flex-direction: column;
+            transition: all 0.3s;
+        }
+
+        /* header with scanlines and glitch */
+        .oasis-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #2affaa;
+            padding-bottom: 0.8rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .logo h1 {
+            font-size: 3.5rem;
+            letter-spacing: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, #c0ffda, #7fffb0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 4px 4px 0 #003322, 0 0 30px #22ff88;
+            margin: 0;
+            line-height: 1;
+        }
+        .logo span {
+            font-size: 1.2rem;
+            letter-spacing: 6px;
+            color: #aaffcc;
+            display: block;
+            text-align: right;
+            text-shadow: 0 0 6px #00ee88;
+        }
+        .status {
+            background: #051a0e;
+            padding: 0.8rem 1.8rem;
+            border: 2px solid #22ee88;
+            border-radius: 60px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #9effb8;
+            box-shadow: 0 0 20px #00ffaa;
+            backdrop-filter: blur(4px);
+        }
+        .status i {
+            color: #22ff88;
+            margin-right: 8px;
+        }
+
+        /* main columns – like an OASIS dashboard */
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+        .left-col {
+            flex: 2;
+            min-width: 280px;
+        }
+        .right-col {
+            flex: 1;
+            min-width: 240px;
+        }
+
+        /* avatar card */
+        .avatar-card {
+            background: rgba(0, 30, 20, 0.7);
+            border: 2px solid #33ee99;
+            border-radius: 36px;
+            padding: 1.8rem 1.8rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(8px);
+            box-shadow: inset 0 0 40px #00aa5540, 0 8px 0 #004d26;
+        }
+        .avatar-row {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .avatar-icon {
+            font-size: 5rem;
+            color: #aaffcc;
+            filter: drop-shadow(0 0 12px #00ffaa);
+            background: #031008;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid #22ee88;
+        }
+        .avatar-stats h3 {
+            font-size: 2rem;
+            font-weight: 400;
+            margin-bottom: 0.5rem;
+            color: #d0ffd0;
+        }
+        .avatar-stats p {
+            font-size: 1.2rem;
+        }
+        .xp-bar {
+            background: #022011;
+            height: 16px;
             border-radius: 20px;
+            margin: 10px 0 5px;
+            border: 1px solid #11dd77;
+            overflow: hidden;
         }
-        
-        /* Animations */
-        @keyframes pulse {
-            0% { opacity: 0.7; }
-            50% { opacity: 1; }
-            100% { opacity: 0.7; }
+        .xp-fill {
+            width: 87%;
+            height: 100%;
+            background: linear-gradient(90deg, #2eff88, #bbffbb);
+            box-shadow: 0 0 20px #88ffaa;
         }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+        .credits {
+            font-size: 1.6rem;
+            margin-top: 10px;
         }
-        
-        @keyframes glow {
-            0%, 100% { box-shadow: 0 0 20px rgba(0, 247, 255, 0.5); }
-            50% { box-shadow: 0 0 40px rgba(0, 247, 255, 0.8); }
+        .credits i {
+            color: gold;
+            margin-right: 0.6rem;
         }
-        
-        .pulse { animation: pulse 2s infinite; }
-        .float { animation: float 3s ease-in-out infinite; }
-        .glow { animation: glow 2s infinite; }
-        
-        /* Notification */
-        .notification {
-            position: fixed;
-            top: 100px;
-            right: 20px;
-            background: rgba(0, 30, 60, 0.9);
-            border: 1px solid #00f7ff;
-            padding: 15px;
-            border-radius: 10px;
-            animation: slideIn 0.3s ease;
-            max-width: 300px;
+
+        /* worlds / locations – grid */
+        .world-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1.2rem;
+            margin: 1.5rem 0;
         }
-        
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        .world-item {
+            background: #071f12e0;
+            border: 2px solid #2aff99;
+            border-radius: 28px;
+            padding: 1.2rem 0.8rem;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            backdrop-filter: blur(2px);
+            transition: 0.2s;
+            box-shadow: 0 4px 0 #004d26;
+            color: #d5ffd5;
+        }
+        .world-item i {
+            font-size: 2.2rem;
+            display: block;
+            margin-bottom: 10px;
+            color: #bbffcc;
+        }
+        .world-item:hover {
+            background: #0b3a22;
+            border-color: #88ffbb;
+            transform: scale(1.02);
+            box-shadow: 0 0 30px #00ffaa;
+            cursor: pointer;
+        }
+
+        /* leaderboard / players */
+        .leaderboard {
+            background: #03150ce0;
+            border: 2px solid #33ee99;
+            border-radius: 36px;
+            padding: 1.6rem;
+            margin-top: 1rem;
+        }
+        .leaderboard h2 {
+            font-size: 1.8rem;
+            border-bottom: 2px dashed #1dee88;
+            padding-bottom: 0.6rem;
+            margin-bottom: 1.2rem;
+        }
+        .player-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.4rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #226633;
+        }
+        .player-name i {
+            color: #ffd966;
+            width: 28px;
+        }
+        .player-score {
+            color: #ddffdd;
+            font-weight: bold;
+        }
+        .high-badge {
+            color: gold;
+            margin-left: 6px;
+        }
+
+        /* quests / news feed */
+        .quests {
+            background: #03150ce0;
+            border: 2px solid #33ee99;
+            border-radius: 36px;
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+        }
+        .quests h2 {
+            font-size: 2rem;
+            border-left: 8px solid #22ee88;
+            padding-left: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+        .quest-item {
+            background: #0b291bb0;
+            border-radius: 28px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            border: 1px solid #22dd88;
+            backdrop-filter: blur(4px);
+        }
+        .quest-icon {
+            background: #0b4422;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            border: 2px solid #55ee99;
+        }
+
+        /* footer / halliday quote */
+        .oasis-footer {
+            margin-top: 2.5rem;
+            border-top: 2px solid #2aff99;
+            padding-top: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            font-size: 1.2rem;
+        }
+        .halliday {
+            max-width: 600px;
+            font-style: italic;
+            color: #b8ffcc;
+            font-size: 1.3rem;
+            background: #02140880;
+            padding: 0.8rem 1.8rem;
+            border-radius: 60px;
+            border: 1px solid #66ffaa;
+        }
+        .halliday i {
+            color: #33ee99;
+            margin-right: 10px;
+        }
+        .footer-links i {
+            font-size: 2rem;
+            margin: 0 10px;
+            color: #22ee88;
+            filter: drop-shadow(0 0 8px #00ffaa);
+            transition: 0.2s;
+        }
+        .footer-links i:hover {
+            color: #ccffcc;
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+
+        /* blinking cursor / extra detail */
+        .cursor-glow {
+            display: inline-block;
+            width: 14px;
+            height: 20px;
+            background: #22ff88;
+            box-shadow: 0 0 15px #00ffaa;
+            margin-left: 6px;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* responsive adjustments */
+        @media (max-width: 700px) {
+            .oasis-panel { padding: 1.5rem; }
+            .logo h1 { font-size: 2.8rem; letter-spacing: 4px; }
         }
     </style>
 </head>
 <body>
-    <!-- Loading Screen -->
-    <div id="loadingScreen">
-        <h1 style="font-size: 3em; background: linear-gradient(90deg, #00f7ff, #7700ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px;">NEXUS METAVERSE</h1>
-        <p style="color: #a0e7ff; margin-bottom: 30px;" id="loadingStatus">Initializing quantum reality...</p>
-        <div class="loadingBar">
-            <div class="loadingFill" id="loadingFill"></div>
-        </div>
-        <p id="loadingText" style="margin-top: 20px; color: #667eea;">Loading core systems...</p>
+
+    <!-- background VFX: grid & floating hexagons (Easter eggs) -->
+    <div class="grid-overlay"></div>
+    <div class="hex-bg">
+        <span style="top: 10%; left: 2%; animation-delay: 0s;"></span>
+        <span style="top: 40%; left: 85%; animation-delay: 3s; width: 80px; height: 80px;"></span>
+        <span style="top: 70%; left: 15%; animation-delay: 1.5s; opacity: 0.3;"></span>
+        <span style="top: 90%; left: 50%; animation-delay: 5s; width: 100px; height: 100px;"></span>
+        <span style="top: 20%; left: 70%; animation-delay: 2.2s;"></span>
+        <span style="top: 60%; left: 40%; animation-delay: 0.7s; width: 45px; height: 45px;"></span>
+        <span style="top: 80%; left: 90%; animation-delay: 4s;"></span>
+        <span style="top: 5%; left: 95%; animation-delay: 6s;"></span>
     </div>
 
-    <!-- Game Container -->
-    <div id="gameContainer">
-        <canvas id="gameCanvas"></canvas>
-        
-        <!-- Main UI Panel -->
-        <div id="mainUI" class="panel">
-            <h2 style="font-family: 'Orbitron'; color: #00f7ff; margin-bottom: 15px;">🌌 NEXUS CONTROL</h2>
-            
-            <div id="zoneNav">
-                <button class="zoneBtn active" onclick="changeZone('nexus')">
-                    <span style="font-size: 18px;">🏛️</span> NEXUS CENTRAL
-                </button>
-                <button class="zoneBtn" onclick="changeZone('cybercity')">
-                    <span style="font-size: 18px;">🌆</span> CYBER CITY
-                </button>
-                <button class="zoneBtn" onclick="changeZone('arena')">
-                    <span style="font-size: 18px;">⚔️</span> COMBAT ARENA
-                </button>
-                <button class="zoneBtn" onclick="changeZone('market')">
-                    <span style="font-size: 18px;">🏪</span> DIGITAL MARKET
-                </button>
-                <button class="zoneBtn" onclick="changeZone('academy')">
-                    <span style="font-size: 18px;">🎓</span> AI ACADEMY
-                </button>
-                <button class="zoneBtn" onclick="changeZone('void')">
-                    <span style="font-size: 18px;">🌀</span> THE VOID
-                </button>
+    <!-- MAIN OASIS INTERFACE -->
+    <main class="oasis-panel">
+
+        <!-- header with in-world time / online status -->
+        <header class="oasis-header">
+            <div class="logo">
+                <h1>OASIS</h1>
+                <span>// ready player one //</span>
             </div>
-            
-            <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
-                <button onclick="openModal('avatarModal')" class="zoneBtn" style="flex: 1; min-width: 120px;">👤 AVATAR</button>
-                <button onclick="openModal('inventoryModal')" class="zoneBtn" style="flex: 1; min-width: 120px;">🎒 INVENTORY</button>
-                <button onclick="toggleInventory()" class="zoneBtn" style="flex: 1; min-width: 120px;">🎮 QUICK MENU</button>
+            <div class="status">
+                <i class="fas fa-circle"></i> 8.2M ONLINE 
+                <span style="margin-left: 1rem; font-size: 1rem;"><i class="fas fa-coins"></i> 42,880</span>
             </div>
-        </div>
-        
-        <!-- HUD -->
-        <div id="hud" class="panel">
-            <div class="stat">
-                <span>⏱️ FPS:</span>
-                <span id="fpsCounter" style="color: #00ff88;">60</span>
-            </div>
-            <div class="stat">
-                <span>👥 PLAYERS:</span>
-                <span id="playerCount">1</span>
-            </div>
-            <div class="stat">
-                <span>📍 ZONE:</span>
-                <span id="currentZone" style="color: #00f7ff;">NEXUS</span>
-            </div>
-        </div>
-        
-        <!-- Player Card -->
-        <div id="playerCard" class="panel">
-            <div style="display: flex; align-items: center;">
-                <div id="avatarDisplay" class="avatarPreview"></div>
-                <div>
-                    <h3 id="playerName" style="color: #00f7ff; font-family: 'Orbitron';">NEXUS_TRAVELER</h3>
-                    <div style="display: flex; gap: 15px; margin-top: 5px;">
-                        <div>
-                            <div style="font-size: 11px; color: #a0e7ff;">LEVEL</div>
-                            <div style="font-size: 20px; color: #ff7700;">01</div>
+        </header>
+
+        <!-- main dashboard left + right columns -->
+        <div class="dashboard">
+            <!-- LEFT COLUMN: avatar, worlds, quests -->
+            <div class="left-col">
+
+                <!-- avatar section (Parzival style) -->
+                <div class="avatar-card">
+                    <div class="avatar-row">
+                        <div class="avatar-icon">
+                            <i class="fas fa-user-astronaut"></i>
                         </div>
-                        <div>
-                            <div style="font-size: 11px; color: #a0e7ff;">CREDITS</div>
-                            <div style="font-size: 20px; color: #ffdd00;">1000</div>
+                        <div class="avatar-stats">
+                            <h3>P4RZ1V4L <span style="font-size: 1.2rem; color:#aaffaa;">(lvl 37)</span></h3>
+                            <p><i class="fas fa-map-pin"></i> Sector 7 • Aech’s Basement</p>
                         </div>
+                    </div>
+                    <div class="xp-bar"><div class="xp-fill"></div></div>
+                    <div class="credits"><i class="fas fa-ticket-alt"></i> 1,240,500 credits</div>
+                    <div style="display:flex; gap:1.2rem; margin-top:10px;">
+                        <span><i class="fas fa-shield-alt"></i> 88</span>
+                        <span><i class="fas fa-heart"></i> 3420</span>
+                        <span><i class="fas fa-key"></i> 15 artifacts</span>
+                    </div>
+                </div>
+
+                <!-- popular worlds (like planets) -->
+                <h2 style="font-size: 2rem; margin-bottom: 0.8rem;">⋆ POPULAR WORLDS</h2>
+                <div class="world-grid">
+                    <div class="world-item"><i class="fas fa-globe"></i> FALCO<br> <span style="font-size:0.8rem;">6.2k players</span></div>
+                    <div class="world-item"><i class="fas fa-crown"></i> MIDGARD<br> <span style="font-size:0.8rem;">13.8k players</span></div>
+                    <div class="world-item"><i class="fas fa-dragon"></i> DOOM CASTLE<br> <span style="font-size:0.8rem;">9.1k players</span></div>
+                    <div class="world-item"><i class="fas fa-meteor"></i> RADIUS<br> <span style="font-size:0.8rem;">4.7k players</span></div>
+                    <div class="world-item"><i class="fas fa-ring"></i> CHTHON<br> <span style="font-size:0.8rem;">2.3M players</span></div>
+                </div>
+
+                <!-- quests / activities (like the OASIS quest log) -->
+                <div class="quests">
+                    <h2><i class="fas fa-scroll"></i> ACTIVE QUESTS</h2>
+                    <div class="quest-item">
+                        <div class="quest-icon"><i class="fas fa-key"></i></div>
+                        <div><strong>Halliday's Easter Egg Hunt</strong><br> Find the copper key · 82,304 players</div>
+                    </div>
+                    <div class="quest-item">
+                        <div class="quest-icon"><i class="fas fa-ghost"></i></div>
+                        <div><strong>Distracted Globe</strong><br> Survive the night · 12,408 players</div>
+                    </div>
+                    <div class="quest-item">
+                        <div class="quest-icon"><i class="fas fa-robot"></i></div>
+                        <div><strong>Mech War 2079</strong><br> 3/6 objectives · 56,002 players</div>
+                    </div>
+                    <div style="margin-top:1.2rem; text-align:right; opacity:0.8;">+ 17 more →</div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: leaderboard / high scores / friends -->
+            <div class="right-col">
+                <div class="leaderboard">
+                    <h2><i class="fas fa-trophy" style="color:gold;"></i> HIGH SCORE</h2>
+                    <div class="player-row"><span class="player-name"><i class="fas fa-crown" style="color:gold;"></i> PARZIVAL</span><span class="player-score">85,340,000</span></div>
+                    <div class="player-row"><span class="player-name"><i class="fas fa-user"></i> AECH</span><span class="player-score">79,125,500</span></div>
+                    <div class="player-row"><span class="player-name"><i class="fas fa-user"></i> ART3MIS</span><span class="player-score">77,430,200</span></div>
+                    <div class="player-row"><span class="player-name"><i class="fas fa-user"></i> Daito</span><span class="player-score">70,220,900</span></div>
+                    <div class="player-row"><span class="player-name"><i class="fas fa-user"></i> Shoto</span><span class="player-score">68,777,700</span></div>
+                    <div class="player-row"><span class="player-name"><i class="fas fa-user-ninja"></i> Sorrento</span><span class="player-score">66,000,010</span></div>
+                    <div style="margin-top:1.2rem; padding:0.6rem; border:1px solid #22ee88; border-radius: 50px; text-align:center;">
+                        <i class="fas fa-users"></i> 128 friends online
+                    </div>
+                </div>
+
+                <!-- mini inventory / recent activity (like OASIS menu) -->
+                <div style="background:#062010e0; border:2px solid #33ee99; border-radius:36px; padding:1.6rem; margin-top:1.8rem;">
+                    <h3 style="font-size:1.8rem; margin-bottom:1rem;"><i class="fas fa-backpack"></i> INVENTORY</h3>
+                    <div style="display:flex; flex-wrap:wrap; gap:0.8rem;">
+                        <span style="border:1px solid #33ee99; border-radius:40px; padding:0.4rem 1rem;"><i class="fas fa-hat-wizard"></i> Holy Hand Grenade</span>
+                        <span style="border:1px solid #33ee99; border-radius:40px; padding:0.4rem 1rem;"><i class="fas fa-car"></i> DeLorean</span>
+                        <span style="border:1px solid #33ee99; border-radius:40px; padding:0.4rem 1rem;"><i class="fas fa-robot"></i> RX-78-2</span>
+                    </div>
+                    <div style="font-size:2rem; margin-top:1rem;">
+                        <i class="fas fa-dice-d20"></i> <i class="fas fa-dragon"></i> <i class="fas fa-chess-queen"></i>
                     </div>
                 </div>
             </div>
-            
-            <!-- Health/Energy Bars -->
-            <div style="margin-top: 15px;">
-                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
-                    <span>❤️ HEALTH</span>
-                    <span id="healthValue">100/100</span>
-                </div>
-                <div style="height: 8px; background: rgba(255, 0, 0, 0.2); border-radius: 4px; overflow: hidden;">
-                    <div id="healthBar" style="height: 100%; width: 100%; background: linear-gradient(90deg, #ff0000, #ff7700);"></div>
-                </div>
+        </div>
+
+        <!-- footer with James Halliday quote / Easter egg reference -->
+        <footer class="oasis-footer">
+            <div class="halliday">
+                <i class="fas fa-quote-left"></i> Thanks for playing my game.  <span style="color:#88ffaa;">— James Halliday</span>
+                <span class="cursor-glow"></span>
             </div>
-            
-            <div style="margin-top: 10px;">
-                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
-                    <span>⚡ ENERGY</span>
-                    <span id="energyValue">100/100</span>
-                </div>
-                <div style="height: 8px; background: rgba(0, 150, 255, 0.2); border-radius: 4px; overflow: hidden;">
-                    <div id="energyBar" style="height: 100%; width: 100%; background: linear-gradient(90deg, #00aaff, #00ffaa);"></div>
-                </div>
+            <div class="footer-links">
+                <i class="fab fa-discord"></i>
+                <i class="fas fa-globe"></i>
+                <i class="fas fa-cube"></i>
+                <i class="fas fa-vr-cardboard"></i>
             </div>
-        </div>
-        
-        <!-- Chat -->
-        <div id="chatContainer" class="panel">
-            <div id="chatMessages">
-                <div class="chatMessage system">Welcome to Nexus Metaverse!</div>
-                <div class="chatMessage system">Type /help for commands</div>
-                <div class="chatMessage npc">Guard: Welcome, traveler!</div>
-            </div>
-            <input type="text" id="chatInput" placeholder="Press Enter to chat..." />
-        </div>
-        
-        <!-- Quick Actions -->
-        <div id="quickActions">
-            <button onclick="quickAction('jump')" class="zoneBtn" style="width: 50px; height: 50px;">🚀</button>
-            <button onclick="quickAction('run')" class="zoneBtn" style="width: 50px; height: 50px;">🏃</button>
-            <button onclick="quickAction('interact')" class="zoneBtn glow" style="width: 50px; height: 50px;">🖱️</button>
-            <button onclick="quickAction('fly')" class="zoneBtn" style="width: 50px; height: 50px;">🕊️</button>
-            <button onclick="quickAction('emote')" class="zoneBtn" style="width: 50px; height: 50px;">💃</button>
-        </div>
-    </div>
+        </footer>
+    </main>
 
-    <!-- Notification Container -->
-    <div id="notificationContainer"></div>
-
-<script>
-// ====================
-// GLOBAL VARIABLES
-// ====================
-let canvas, ctx;
-let gameRunning = false;
-let lastTime = 0;
-let fps = 60;
-let deltaTime = 0;
-let particles = [];
-let npcs = [];
-let objects = [];
-let currentZone = 'nexus';
-let keys = {};
-let mouse = { x: 0, y: 0, down: false };
-let player = {
-    x: 400,
-    y: 300,
-    vx: 0,
-    vy: 0,
-    speed: 5,
-    health: 100,
-    maxHealth: 100,
-    energy: 100,
-    maxEnergy: 100,
-    level: 1,
-    xp: 0,
-    xpToNext: 1000,
-    credits: 1000,
-    inventory: [],
-    avatar: {
-        name: 'NEXUS_TRAVELER',
-        color: '#3498db',
-        type: 'human'
-    }
-};
-
-// Items Database
-const items = [
-    { id: 1, name: 'Health Pack', emoji: '❤️', type: 'consumable', value: 50 },
-    { id: 2, name: 'Energy Cell', emoji: '⚡', type: 'consumable', value: 30 },
-    { id: 3, name: 'Laser Sword', emoji: '⚔️', type: 'weapon', value: 200 },
-    { id: 4, name: 'Cyber Armor', emoji: '🛡️', type: 'armor', value: 150 },
-    { id: 5, name: 'Jetpack', emoji: '🚀', type: 'equipment', value: 300 }
-];
-
-// Zones Configuration
-const zones = {
-    nexus: {
-        name: 'Nexus Central',
-        color: '#0a1a2a',
-        objects: [
-            { type: 'portal', x: 600, y: 400, target: 'cybercity', emoji: '🌆' },
-            { type: 'building', x: 200, y: 150, width: 100, height: 80, color: '#8e44ad' },
-            { type: 'npc', x: 300, y: 300, name: 'Guide', emoji: '👨‍🏫', dialog: 'Welcome to Nexus!' },
-            { type: 'coin', x: 400, y: 200, value: 50, collected: false },
-            { type: 'shop', x: 500, y: 100, emoji: '🏪' }
-        ]
-    },
-    cybercity: {
-        name: 'Cyber City',
-        color: '#1a0a2a',
-        objects: [
-            { type: 'portal', x: 100, y: 100, target: 'nexus', emoji: '🏛️' },
-            { type: 'building', x: 300, y: 200, width: 120, height: 60, color: '#3498db' },
-            { type: 'vehicle', x: 500, y: 300, emoji: '🏍️' },
-            { type: 'npc', x: 200, y: 400, name: 'Cyborg', emoji: '🤖', dialog: 'The future is now!' },
-            { type: 'coin', x: 350, y: 250, value: 75, collected: false }
-        ]
-    },
-    arena: {
-        name: 'Combat Arena',
-        color: '#2a0a0a',
-        objects: [
-            { type: 'portal', x: 100, y: 100, target: 'nexus', emoji: '🏛️' },
-            { type: 'arena', x: 300, y: 200, width: 200, height: 150, color: '#c0392b' },
-            { type: 'weapon', x: 400, y: 300, emoji: '⚔️' },
-            { type: 'npc', x: 150, y: 300, name: 'Gladiator', emoji: '⚔️', dialog: 'Ready to fight?' },
-            { type: 'coin', x: 500, y: 200, value: 100, collected: false }
-        ]
-    }
-};
-
-// ====================
-// INITIALIZATION
-// ====================
-function init() {
-    console.log('Initializing Nexus Metaverse...');
-    
-    // Setup canvas
-    canvas = document.getElementById('gameCanvas');
-    ctx = canvas.getContext('2d');
-    resizeCanvas();
-    
-    // Setup event listeners
-    window.addEventListener('resize', resizeCanvas);
-    window.addEventListener('keydown', (e) => {
-        keys[e.key.toLowerCase()] = true;
-        if (e.key === 'Escape') closeAllModals();
-    });
-    window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
-    
-    canvas.addEventListener('mousemove', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        mouse.x = e.clientX - rect.left;
-        mouse.y = e.clientY - rect.top;
-    });
-    
-    canvas.addEventListener('mousedown', () => mouse.down = true);
-    canvas.addEventListener('mouseup', () => mouse.down = false);
-    
-    // Setup chat
-    document.getElementById('chatInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            const input = document.getElementById('chatInput');
-            if (input.value.trim()) {
-                sendMessage(input.value);
-                input.value = '';
-            }
-        }
-    });
-    
-    // Simulate loading
-    simulateLoading();
-    
-    // Setup NPCs
-    createNPCs();
-    
-    // Add initial items to inventory
-    player.inventory = [items[0], items[1], items[2]];
-    
-    console.log('Game initialized successfully!');
-}
-
-function simulateLoading() {
-    let progress = 0;
-    const loadingTexts = [
-        "Initializing quantum processors...",
-        "Loading neural interfaces...",
-        "Generating virtual biomes...",
-        "Calibrating reality engines...",
-        "Synchronizing with Nexus core...",
-        "Finalizing metaverse protocols..."
-    ];
-    
-    const interval = setInterval(() => {
-        progress += Math.random() * 15;
-        if (progress > 100) progress = 100;
-        
-        document.getElementById('loadingFill').style.width = progress + '%';
-        
-        const textIndex = Math.min(Math.floor(progress / 17), loadingTexts.length - 1);
-        document.getElementById('loadingText').textContent = loadingTexts[textIndex];
-        
-        if (progress >= 100) {
-            clearInterval(interval);
-            setTimeout(() => {
-                document.getElementById('loadingScreen').style.display = 'none';
-                document.getElementById('gameContainer').style.display = 'block';
-                startGame();
-            }, 500);
-        }
-    }, 100);
-}
-
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-
-// ====================
-// GAME LOOP
-// ====================
-function startGame() {
-    console.log('Starting game loop...');
-    gameRunning = true;
-    lastTime = performance.now();
-    requestAnimationFrame(gameLoop);
-}
-
-function gameLoop(timestamp) {
-    if (!gameRunning) return;
-    
-    // Calculate delta time
-    deltaTime = timestamp - lastTime;
-    lastTime = timestamp;
-    fps = Math.round(1000 / deltaTime);
-    
-    // Update FPS counter
-    document.getElementById('fpsCounter').textContent = fps;
-    
-    // Clear canvas
-    ctx.fillStyle = zones[currentZone].color;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw zone background
-    drawBackground();
-    
-    // Update and draw objects
-    updateObjects();
-    drawObjects();
-    
-    // Handle input
-    handleInput();
-    
-    // Update player
-    updatePlayer();
-    drawPlayer();
-    
-    // Update NPCs
-    updateNPCs();
-    drawNPCs();
-    
-    // Draw particles
-    updateParticles();
-    drawParticles();
-    
-    // Draw UI
-    drawUI();
-    
-    // Check collisions
-    checkCollisions();
-    
-    // Continue loop
-    requestAnimationFrame(gameLoop);
-}
-
-// ====================
-// DRAWING FUNCTIONS
-// ====================
-function drawBackground() {
-    // Draw gradient background
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, zones[currentZone].color);
-    gradient.addColorStop(1, '#000000');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw grid
-    ctx.strokeStyle = 'rgba(0, 150, 255, 0.1)';
-    ctx.lineWidth = 1;
-    const gridSize = 50;
-    
-    for (let x = 0; x < canvas.width; x += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-        ctx.stroke();
-    }
-    
-    for (let y = 0; y < canvas.height; y += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-        ctx.stroke();
-    }
-    
-    // Draw stars in void zone
-    if (currentZone === 'void') {
-        ctx.fillStyle = '#ffffff';
-        for (let i = 0; i < 100; i++) {
-            const x = (i * 37) % canvas.width;
-            const y = (i * 23) % canvas.height;
-            const size = Math.sin(Date.now() / 1000 + i) * 2 + 1;
-            ctx.beginPath();
-            ctx.arc(x, y, size, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    }
-}
-
-function drawObjects() {
-    zones[currentZone].objects.forEach(obj => {
-        ctx.save();
-        
-        switch(obj.type) {
-            case 'portal':
-                // Draw portal glow
-                const pulse = Math.sin(Date.now() / 500) * 10 + 20;
-                const gradient = ctx.createRadialGradient(obj.x, obj.y, 0, obj.x, obj.y, 40);
-                gradient.addColorStop(0, 'rgba(0, 247, 255, 0.8)');
-                gradient.addColorStop(1, 'rgba(0, 247, 255, 0)');
-                ctx.fillStyle = gradient;
-                ctx.beginPath();
-                ctx.arc(obj.x, obj.y, 40 + pulse, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Draw portal icon
-                ctx.font = '30px Arial';
-                ctx.fillStyle = '#00f7ff';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(obj.emoji, obj.x, obj.y);
-                
-                // Draw portal label
-                ctx.font = '12px Orbitron';
-                ctx.fillStyle = '#ffffff';
-                ctx.fillText('Portal', obj.x, obj.y + 40);
-                break;
-                
-            case 'building':
-                // Draw building
-                ctx.fillStyle = obj.color;
-                ctx.fillRect(obj.x - obj.width/2, obj.y - obj.height/2, obj.width, obj.height);
-                
-                // Draw windows
-                ctx.fillStyle = '#f1c40f';
-                for(let i = 0; i < 3; i++) {
-                    for(let j = 0; j < 2; j++) {
-                        ctx.fillRect(
-                            obj.x - obj.width/2 + 20 + i*30,
-                            obj.y - obj.height/2 + 15 + j*25,
-                            15, 15
-                        );
-                    }
-                }
-                break;
-                
-            case 'coin':
-                if (!obj.collected) {
-                    // Draw coin glow
-                    const coinPulse = Math.sin(Date.now() / 200) * 3;
-                    ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
-                    ctx.beginPath();
-                    ctx.arc(obj.x, obj.y, 20 + coinPulse, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Draw coin
-                    ctx.fillStyle = '#ffd700';
-                    ctx.beginPath();
-                    ctx.arc(obj.x, obj.y, 15, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Draw coin symbol
-                    ctx.fillStyle = '#000';
-                    ctx.font = 'bold 16px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('$', obj.x, obj.y);
-                }
-                break;
-                
-            case 'npc':
-                // Draw NPC body
-                ctx.fillStyle = '#3498db';
-                ctx.fillRect(obj.x - 15, obj.y - 25, 30, 50);
-                
-                // Draw NPC head
-                ctx.fillStyle = '#f1c2a9';
-                ctx.beginPath();
-                ctx.arc(obj.x, obj.y - 40, 15, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Draw NPC emoji
-                ctx.font = '20px Arial';
-                ctx.fillStyle = '#fff';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(obj.emoji, obj.x, obj.y - 40);
-                
-                // Draw NPC name
-                ctx.font = '12px Orbitron';
-                ctx.fillStyle = '#00ff88';
-                ctx.fillText(obj.name, obj.x, obj.y - 70);
-                
-                // Draw speech bubble if near
-                const dist = Math.sqrt(Math.pow(player.x - obj.x, 2) + Math.pow(player.y - obj.y, 2));
-                if (dist < 100) {
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-                    ctx.beginPath();
-                    ctx.roundRect(obj.x - 60, obj.y - 120, 120, 40, 10);
-                    ctx.fill();
-                    
-                    ctx.fillStyle = '#000';
-                    ctx.font = '10px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(obj.dialog, obj.x, obj.y - 100);
-                }
-                break;
-                
-            case 'shop':
-                // Draw shop
-                ctx.fillStyle = '#27ae60';
-                ctx.fillRect(obj.x - 40, obj.y - 30, 80, 60);
-                
-                // Draw shop icon
-                ctx.font = '30px Arial';
-                ctx.fillStyle = '#fff';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(obj.emoji, obj.x, obj.y);
-                
-                // Draw shop label
-                ctx.font = '12px Orbitron';
-                ctx.fillText('Shop', obj.x, obj.y + 40);
-                break;
-                
-            case 'vehicle':
-                // Draw vehicle
-                ctx.fillStyle = '#e74c3c';
-                ctx.fillRect(obj.x - 25, obj.y - 15, 50, 30);
-                ctx.fillRect(obj.x - 20, obj.y + 15, 10, 10);
-                ctx.fillRect(obj.x + 10, obj.y + 15, 10, 10);
-                
-                // Draw vehicle icon
-                ctx.font = '20px Arial';
-                ctx.fillStyle = '#fff';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(obj.emoji, obj.x, obj.y);
-                break;
-                
-            case 'arena':
-                // Draw arena
-                ctx.fillStyle = obj.color;
-                ctx.fillRect(obj.x - obj.width/2, obj.y - obj.height/2, obj.width, obj.height);
-                
-                // Draw arena border
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 3;
-                ctx.strokeRect(obj.x - obj.width/2, obj.y - obj.height/2, obj.width, obj.height);
-                
-                // Draw arena label
-                ctx.font = '16px Orbitron';
-                ctx.fillStyle = '#fff';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('ARENA', obj.x, obj.y);
-                break;
-        }
-        
-        ctx.restore();
-    });
-}
-
-function drawPlayer() {
-    ctx.save();
-    
-    // Draw player shadow
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-    ctx.beginPath();
-    ctx.ellipse(player.x, player.y + 25, 20, 10, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Draw player body
-    ctx.fillStyle = player.avatar.color;
-    ctx.fillRect(player.x - 20, player.y - 30, 40, 60);
-    
-    // Draw player head
-    ctx.fillStyle = '#f1c2a9';
-    ctx.beginPath();
-    ctx.arc(player.x, player.y - 50, 20, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Draw player eyes
-    ctx.fillStyle = '#000';
-    ctx.beginPath();
-    ctx.arc(player.x - 8, player.y - 55, 4, 0, Math.PI * 2);
-    ctx.arc(player.x + 8, player.y - 55, 4, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Draw player name
-    ctx.font = '14px Orbitron';
-    ctx.fillStyle = '#00f7ff';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'bottom';
-    ctx.fillText(player.avatar.name, player.x, player.y - 80);
-    
-    // Draw level badge
-    ctx.fillStyle = '#ff7700';
-    ctx.beginPath();
-    ctx.arc(player.x + 25, player.y - 60, 12, 0, Math.PI * 2);
-    ctx.fill();
-    
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 10px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(player.level, player.x + 25, player.y - 60);
-    
-    ctx.restore();
-}
-
-function createNPCs() {
-    npcs = [];
-    
-    // Create NPCs based on zone
-    const zoneNPCs = zones[currentZone].objects.filter(obj => obj.type === 'npc');
-    zoneNPCs.forEach(npc => {
-        npcs.push({
-            x: npc.x,
-            y: npc.y,
-            vx: 0,
-            vy: 0,
-            targetX: npc.x + (Math.random() * 100 - 50),
-            targetY: npc.y + (Math.random() * 100 - 50),
-            speed: 0.5 + Math.random() * 1,
-            name: npc.name,
-            emoji: npc.emoji,
-            color: '#3498db',
-            lastMove: Date.now()
-        });
-    });
-    
-    // Add some extra wandering NPCs
-    for (let i = 0; i < 3; i++) {
-        npcs.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            vx: 0,
-            vy: 0,
-            targetX: Math.random() * canvas.width,
-            targetY: Math.random() * canvas.height,
-            speed: 0.3 + Math.random() * 0.7,
-            name: ['Traveler', 'Citizen', 'Visitor'][i],
-            emoji: ['🚶', '🧑‍💼', '👤'][i],
-            color: ['#2ecc71', '#9b59b6', '#f1c40f'][i],
-            lastMove: Date.now()
-        });
-    }
-    
-    document.getElementById('playerCount').textContent = npcs.length + 1;
-}
-
-function updateNPCs() {
-    npcs.forEach(npc => {
-        // Move toward target
-        const dx = npc.targetX - npc.x;
-        const dy = npc.targetY - npc.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        if (distance > 10) {
-            npc.vx = (dx / distance) * npc.speed;
-            npc.vy = (dy / distance) * npc.speed;
-        } else {
-            npc.vx *= 0.9;
-            npc.vy *= 0.9;
-            
-            // Set new target if close or after some time
-            if (distance < 5 || Date.now() - npc.lastMove > 3000) {
-                npc.targetX = npc.x + (Math.random() * 200 - 100);
-                npc.targetY = npc.y + (Math.random() * 200 - 100);
-                npc.lastMove = Date.now();
-            }
-        }
-        
-        // Update position
-        npc.x += npc.vx;
-        npc.y += npc.vy;
-        
-        // Keep in bounds
-        npc.x = Math.max(30, Math.min(canvas.width - 30, npc.x));
-        npc.y = Math.max(50, Math.min(canvas.height - 30, npc.y));
-    });
-}
-
-function drawNPCs() {
-    npcs.forEach(npc => {
-        ctx.save();
-        
-        // Draw NPC shadow
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-        ctx.beginPath();
-        ctx.ellipse(npc.x, npc.y + 25, 15, 8, 0, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Draw NPC body
-        ctx.fillStyle = npc.color;
-        ctx.fillRect(npc.x - 15, npc.y - 20, 30, 40);
-        
-        // Draw NPC head
-        ctx.fillStyle = '#f1c2a9';
-        ctx.beginPath();
-        ctx.arc(npc.x, npc.y - 35, 12, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Draw NPC emoji
-        ctx.font = '16px Arial';
-        ctx.fillStyle = '#fff';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(npc.emoji, npc.x, npc.y - 35);
-        
-        // Draw NPC name
-        ctx.font = '10px Orbitron';
-        ctx.fillStyle = '#a0e7ff';
-        ctx.fillText(npc.name, npc.x, npc.y - 55);
-        
-        ctx.restore();
-    });
-}
-
-function createParticle(x, y, color, count = 5) {
-    for (let i = 0; i < count; i++) {
-        particles.push({
-            x: x,
-            y: y,
-            vx: (Math.random() - 0.5) * 10,
-            vy: (Math.random() - 0.5) * 10 - 5,
-            color: color,
-            size: 2 + Math.random() * 4,
-            life: 1.0,
-            decay: 0.02 + Math.random() * 0.03
-        });
-    }
-}
-
-function updateParticles() {
-    for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.1; // gravity
-        p.life -= p.decay;
-        
-        if (p.life <= 0) {
-            particles.splice(i, 1);
-        }
-    }
-}
-
-function drawParticles() {
-    particles.forEach(p => {
-        ctx.save();
-        ctx.globalAlpha = p.life;
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-    });
-}
-
-function drawUI() {
-    // Update UI elements
-    document.getElementById('healthValue').textContent = `${Math.round(player.health)}/${player.maxHealth}`;
-    document.getElementById('healthBar').style.width = `${(player.health / player.maxHealth) * 100}%`;
-    
-    document.getElementById('energyValue').textContent = `${Math.round(player.energy)}/${player.maxEnergy}`;
-    document.getElementById('energyBar').style.width = `${(player.energy / player.maxEnergy) * 100}%`;
-    
-    document.getElementById('playerName').textContent = player.avatar.name;
-    document.getElementById('currentZone').textContent = zones[currentZone].name;
-    
-    // Update avatar display
-    const avatarDisplay = document.getElementById('avatarDisplay');
-    avatarDisplay.style.background = `linear-gradient(135deg, ${player.avatar.color}, ${darkenColor(player.avatar.color, 40)})`;
-}
-
-function darkenColor(color, percent) {
-    const num = parseInt(color.replace('#', ''), 16);
-    const amt = Math.round(2.55 * percent);
-    const R = (num >> 16) - amt;
-    const G = (num >> 8 & 0x00FF) - amt;
-    const B = (num & 0x0000FF) - amt;
-    return `#${(0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
-            (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
-            (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1)}`;
-}
-
-// ====================
-// INPUT HANDLING
-// ====================
-function handleInput() {
-    // Reset velocity
-    player.vx = 0;
-    player.vy = 0;
-    
-    // Movement keys
-    const speed = player.speed * (keys['shift'] ? 2 : 1);
-    if (keys['w'] || keys['arrowup']) player.vy -= speed;
-    if (keys['s'] || keys['arrowdown']) player.vy += speed;
-    if (keys['a'] || keys['arrowleft']) player.vx -= speed;
-    if (keys['d'] || keys['arrowright']) player.vx += speed;
-    
-    // Space for jump
-    if (keys[' '] && player.energy > 0) {
-        player.vy -= 8;
-        player.energy -= 2;
-        createParticle(player.x, player.y + 20, '#00f7ff', 10);
-    }
-    
-    // Number keys for quick actions
-    if (keys['1']) quickAction('jump');
-    if (keys['2']) quickAction('run');
-    if (keys['3']) quickAction('interact');
-    if (keys['4']) quickAction('fly');
-    if (keys['5']) quickAction('emote');
-}
-
-function updatePlayer() {
-    // Apply velocity
-    player.x += player.vx;
-    player.y += player.vy;
-    
-    // Apply friction
-    player.vx *= 0.9;
-    player.vy *= 0.9;
-    
-    // Keep in bounds
-    player.x = Math.max(20, Math.min(canvas.width - 20, player.x));
-    player.y = Math.max(40, Math.min(canvas.height - 20, player.y));
-    
-    // Regenerate energy
-    if (player.energy < player.maxEnergy) {
-        player.energy += 0.1;
-        if (player.energy > player.maxEnergy) player.energy = player.maxEnergy;
-    }
-    
-    // Regenerate health slowly
-    if (player.health < player.maxHealth) {
-        player.health += 0.05;
-        if (player.health > player.maxHealth) player.health = player.maxHealth;
-    }
-}
-
-// ====================
-// COLLISION DETECTION
-// ====================
-function checkCollisions() {
-    zones[currentZone].objects.forEach(obj => {
-        const dx = player.x - obj.x;
-        const dy = player.y - obj.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        switch(obj.type) {
-            case 'portal':
-                if (distance < 40) {
-                    changeZone(obj.target);
-                }
-                break;
-                
-            case 'coin':
-                if (!obj.collected && distance < 30) {
-                    obj.collected = true;
-                    player.credits += obj.value;
-                    createParticle(obj.x, obj.y, '#ffd700', 15);
-                    showNotification(`Found ${obj.value} credits!`, '#ffd700');
-                    updateUI();
-                }
-                break;
-                
-            case 'npc':
-                if (distance < 50 && keys['e']) {
-                    showNotification(`${obj.name}: "${obj.dialog}"`, '#00ff88');
-                }
-                break;
-                
-            case 'shop':
-                if (distance < 60 && keys['e']) {
-                    openShop();
-                }
-                break;
-        }
-    });
-    
-    // Check NPC collisions
-    npcs.forEach(npc => {
-        const dx = player.x - npc.x;
-        const dy = player.y - npc.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        if (distance < 40) {
-            // Push player away
-            player.x += dx * 0.1;
-            player.y += dy * 0.1;
-        }
-    });
-}
-
-// ====================
-// ZONE MANAGEMENT
-// ====================
-function changeZone(zoneId) {
-    if (currentZone === zoneId) return;
-    
-    // Create transition particles
-    createParticle(player.x, player.y, '#00f7ff', 50);
-    
-    // Update current zone
-    currentZone = zoneId;
-    
-    // Update UI
-    document.getElementById('currentZone').textContent = zones[zoneId].name;
-    
-    // Update zone buttons
-    document.querySelectorAll('.zoneBtn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    // Reset player position
-    player.x = canvas.width / 2;
-    player.y = canvas.height / 2;
-    
-    // Reset NPCs
-    createNPCs();
-    
-    // Show notification
-    showNotification(`Entered ${zones[zoneId].name}`, '#00f7ff');
-    
-    // Add chat message
-    addChatMessage(`System: Traveled to ${zones[zoneId].name}`, 'system');
-}
-
-// ====================
-// UI FUNCTIONS
-// ====================
-function quickAction(action) {
-    switch(action) {
-        case 'jump':
-            player.vy -= 12;
-            player.energy -= 5;
-            createParticle(player.x, player.y + 20, '#00f7ff', 20);
-            showNotification('Super Jump!', '#00f7ff');
-            break;
-            
-        case 'run':
-            player.speed = player.speed === 5 ? 10 : 5;
-            showNotification(player.speed === 10 ? 'Turbo Mode!' : 'Normal Speed', '#00ff88');
-            break;
-            
-        case 'interact':
-            // Find nearest interactable
-            let nearest = null;
-            let minDist = Infinity;
-            
-            zones[currentZone].objects.forEach(obj => {
-                if (obj.type === 'npc' || obj.type === 'shop') {
-                    const dx = player.x - obj.x;
-                    const dy = player.y - obj.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (dist < minDist && dist < 100) {
-                        minDist = dist;
-                        nearest = obj;
-                    }
-                }
-            });
-            
-            if (nearest) {
-                if (nearest.type === 'npc') {
-                    showNotification(`${nearest.name}: "${nearest.dialog}"`, '#00ff88');
-                } else if (nearest.type === 'shop') {
-                    openShop();
-                }
-            }
-            break;
-            
-        case 'fly':
-            player.vy -= 3;
-            createParticle(player.x, player.y + 20, '#ff00ff', 15);
-            break;
-            
-        case 'emote':
-            const emotes = ['💃', '🕺', '🎉', '✨', '🌟'];
-            const emote = emotes[Math.floor(Math.random() * emotes.length)];
-            showNotification(`You ${emote}`, '#ff00ff');
-            createParticle(player.x, player.y - 50, '#ff00ff', 30);
-            break;
-    }
-}
-
-function openModal(modalId) {
-    document.getElementById(modalId).style.display = 'block';
-}
-
-function closeModal(modalId) {
-    document.getElementById(modalId).style.display = 'none';
-}
-
-function closeAllModals() {
-    document.querySelectorAll('.modal').forEach(modal => {
-        modal.style.display = 'none';
-    });
-}
-
-function toggleInventory() {
-    const inventory = document.getElementById('inventory');
-    inventory.style.display = inventory.style.display === 'none' ? 'block' : 'none';
-    
-    if (inventory.style.display === 'block') {
-        updateInventoryDisplay();
-    }
-}
-
-function updateInventoryDisplay() {
-    const inventoryDiv = document.getElementById('inventory');
-    inventoryDiv.innerHTML = '<h3>🎒 INVENTORY</h3>';
-    
-    player.inventory.forEach((item, index) => {
-        const slot = document.createElement('div');
-        slot.className = 'inventorySlot';
-        slot.textContent = item.emoji;
-        slot.title = `${item.name} - Value: ${item.value} credits`;
-        slot.onclick = () => useItem(item, index);
-        inventoryDiv.appendChild(slot);
-    });
-}
-
-function useItem(item, index) {
-    switch(item.type) {
-        case 'consumable':
-            if (item.name === 'Health Pack') {
-                player.health = Math.min(player.maxHealth, player.health + 25);
-                showNotification('Health restored!', '#ff0000');
-            } else if (item.name === 'Energy Cell') {
-                player.energy = Math.min(player.maxEnergy, player.energy + 30);
-                showNotification('Energy restored!', '#00ff00');
-            }
-            player.inventory.splice(index, 1);
-            updateInventoryDisplay();
-            break;
-            
-        case 'weapon':
-            showNotification(`Equipped ${item.name}!`, '#ff7700');
-            createParticle(player.x, player.y, '#ff7700', 20);
-            break;
-    }
-}
-
-function openShop() {
-    showNotification('Shop opened! Buy items with credits.', '#27ae60');
-    
-    // Create shop modal content
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.display = 'block';
-    modal.innerHTML = `
-        <div class="modalContent" style="width: 500px;">
-            <button class="closeBtn" onclick="this.parentElement.parentElement.remove()">×</button>
-            <h2 style="color: #00f7ff;">🏪 DIGITAL MARKET</h2>
-            <p style="color: #a0e7ff; margin: 10px 0;">Your credits: ${player.credits}</p>
-            <div id="shopItems" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px;"></div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    const shopItems = document.getElementById('shopItems');
-    items.forEach(item => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'zoneBtn';
-        itemDiv.style.padding = '15px';
-        itemDiv.innerHTML = `
-            <div style="font-size: 30px;">${item.emoji}</div>
-            <div style="font-size: 12px; margin-top: 5px;">${item.name}</div>
-            <div style="font-size: 11px; color: #ffdd00;">${item.value} credits</div>
-            <button onclick="buyItem('${item.id}')" style="margin-top: 10px; padding: 5px 10px; background: #27ae60; border: none; color: white; border-radius: 4px; cursor: pointer;">BUY</button>
-        `;
-        shopItems.appendChild(itemDiv);
-    });
-}
-
-function buyItem(itemId) {
-    const item = items.find(i => i.id == itemId);
-    if (!item) return;
-    
-    if (player.credits >= item.value) {
-        player.credits -= item.value;
-        player.inventory.push(item);
-        showNotification(`Purchased ${item.name}!`, '#27ae60');
-        updateUI();
-        updateInventoryDisplay();
-    } else {
-        showNotification('Not enough credits!', '#e74c3c');
-    }
-}
-
-function updateUI() {
-    // Update credit display
-    const creditElements = document.querySelectorAll('#playerCard div div div:nth-child(3) div:nth-child(2)');
-    creditElements.forEach(el => {
-        if (el.textContent.includes('CREDITS') || el.textContent.includes('1000')) {
-            el.parentElement.querySelector('div:nth-child(2)').textContent = player.credits;
-        }
-    });
-}
-
-function sendMessage(message) {
-    if (message.startsWith('/')) {
-        // Handle commands
-        const cmd = message.slice(1).toLowerCase();
-        switch(cmd) {
-            case 'help':
-                addChatMessage('System: Commands - /help, /credits, /level, /inventory, /clear', 'system');
-                break;
-            case 'credits':
-                addChatMessage(`System: You have ${player.credits} credits`, 'system');
-                break;
-            case 'level':
-                addChatMessage(`System: Level ${player.level} (${player.xp}/${player.xpToNext} XP)`, 'system');
-                break;
-            case 'inventory':
-                addChatMessage(`System: Inventory: ${player.inventory.length} items`, 'system');
-                break;
-            case 'clear':
-                document.getElementById('chatMessages').innerHTML = '';
-                break;
-            default:
-                addChatMessage('System: Unknown command. Type /help for commands.', 'system');
-        }
-    } else {
-        // Regular message
-        addChatMessage(`${player.avatar.name}: ${message}`, 'player');
-        
-        // Simulate NPC responses
-        setTimeout(() => {
-            if (Math.random() > 0.7) {
-                const responses = [
-                    "Welcome to the Nexus!",
-                    "Nice weather in the metaverse today!",
-                    "Anyone want to explore?",
-                    "Check out my new gear!",
-                    "The market has great deals today!",
-                    "Let's go to the arena!"
-                ];
-                const randomNPC = npcs[Math.floor(Math.random() * npcs.length)];
-                const response = responses[Math.floor(Math.random() * responses.length)];
-                addChatMessage(`${randomNPC.name}: ${response}`, 'npc');
-            }
-        }, 500);
-    }
-}
-
-function addChatMessage(text, type) {
-    const chat = document.getElementById('chatMessages');
-    const message = document.createElement('div');
-    message.className = `chatMessage ${type}`;
-    message.textContent = text;
-    chat.appendChild(message);
-    chat.scrollTop = chat.scrollHeight;
-}
-
-function showNotification(text, color = '#00f7ff') {
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.style.borderColor = color;
-    notification.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="font-size: 20px;">✨</div>
-            <div>${text}</div>
-        </div>
-    `;
-    
-    document.getElementById('notificationContainer').appendChild(notification);
-    
-    // Auto-remove after 3 seconds
-    setTimeout(() => {
-        notification.style.animation = 'slideIn 0.3s ease reverse';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
-
-// ====================
-// START THE GAME
-// ====================
-// Initialize when page loads
-window.addEventListener('load', init);
-
-// Handle window resize
-window.addEventListener('resize', () => {
-    if (canvas) {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
-});
-
-// Prevent right-click menu
-document.addEventListener('contextmenu', e => e.preventDefault());
-</script>
+    <!-- hidden easter egg text (tiny) -->
+    <div style="position: fixed; bottom: 8px; right: 16px; color: #002211; font-size: 0.8rem; z-index: 99; opacity:0.4;">🔹 OASIS v.1.0 · 2045 · only here</div>
 </body>
 </html>
